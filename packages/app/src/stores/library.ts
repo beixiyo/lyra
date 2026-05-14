@@ -6,8 +6,9 @@ import type { Track, ScanResult } from '@/types/music'
 export const tracks = signal<Track[]>([])
 export const isScanning = signal(false)
 export const scanError = signal<string | null>(null)
-export const currentView = persistedSignal<'artists' | 'songs' | 'artist-detail'>('lyra:view', 'artists')
+export const currentView = persistedSignal<ViewType>('lyra:view', 'artists')
 export const selectedFolder = signal<string | null>(null)
+export const selectedAlbum = signal<string | null>(null)
 export const musicDirs = persistedSignal<string[]>('lyra:musicDirs', [])
 export const searchQuery = signal('')
 
@@ -42,6 +43,43 @@ export const folders = computed(() => {
     })
     .map(([name, items]) => ({ name, count: items.length, firstTrack: items[0] }))
     .sort((a, b) => a.name.localeCompare(b.name))
+})
+
+export const albums = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  const map = new Map<string, Track[]>()
+
+  for (const t of tracks.value) {
+    const key = t.album || '未知专辑'
+    const arr = map.get(key)
+    if (arr) arr.push(t)
+    else map.set(key, [t])
+  }
+
+  return [...map.entries()]
+    .filter(([name, items]) => {
+      if (!q) return true
+      if (name.toLowerCase().includes(q)) return true
+      return items.some(t => matchesQuery(t, q))
+    })
+    .map(([name, items]) => ({
+      name,
+      artist: items[0].albumArtist || items[0].artist || '',
+      year: items[0].year,
+      count: items.length,
+      firstTrack: items[0],
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+})
+
+export const albumTracks = computed(() => {
+  if (!selectedAlbum.value) return []
+
+  const base = filteredTracks.value
+  const album = selectedAlbum.value === '未知专辑' ? '' : selectedAlbum.value
+  return base
+    .filter(t => (t.album || '') === album)
+    .sort((a, b) => (a.track?.no ?? 0) - (b.track?.no ?? 0))
 })
 
 export const displayTracks = computed(() => {
@@ -118,7 +156,19 @@ export function selectFolder(folder: string) {
   currentView.value = 'artist-detail'
 }
 
+export function selectAlbum(album: string) {
+  selectedAlbum.value = album
+  currentView.value = 'album-detail'
+}
+
 export function goBack() {
   selectedFolder.value = null
-  currentView.value = 'artists'
+  selectedAlbum.value = null
+
+  const view = currentView.peek()
+  if (view === 'artist-detail') currentView.value = 'artists'
+  else if (view === 'album-detail') currentView.value = 'albums'
+  else currentView.value = 'artists'
 }
+
+type ViewType = 'artists' | 'songs' | 'artist-detail' | 'albums' | 'album-detail'

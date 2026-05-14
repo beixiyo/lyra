@@ -2,22 +2,24 @@ import { cn } from 'utils'
 import { memo } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
-import { Disc3, Users, ListMusic, FolderPlus, X } from 'lucide-react'
+import { Disc3, Users, ListMusic, Disc, FolderPlus, X } from 'lucide-react'
 import { currentView, goBack, musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
 
 const NAV_ITEMS = [
   { id: 'artists' as const, label: '艺术家', icon: Users },
+  { id: 'albums' as const, label: '专辑', icon: Disc },
   { id: 'songs' as const, label: '所有歌曲', icon: ListMusic },
 ]
 
 export const Sidebar = memo<SidebarProps>(({ style, className }) => {
   useSignals()
 
-  const handleNav = useLatestCallback((id: 'artists' | 'songs') => {
-    if (id === 'artists') {
+  const handleNav = useLatestCallback((id: string) => {
+    if (id === 'artists' || id === 'albums') {
       goBack()
+      currentView.value = id as typeof currentView.value
     } else {
-      currentView.value = id
+      currentView.value = id as typeof currentView.value
     }
   })
 
@@ -43,7 +45,9 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
         <div className="space-y-0.5">
           {NAV_ITEMS.map(item => {
             const view = currentView.value
-            const active = view === item.id || (item.id === 'artists' && view === 'artist-detail')
+            const active = view === item.id
+              || (item.id === 'artists' && view === 'artist-detail')
+              || (item.id === 'albums' && view === 'album-detail')
 
             return (
               <button

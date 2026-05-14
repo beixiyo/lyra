@@ -4,7 +4,7 @@ import { onMounted } from 'hooks'
 import { Loader2 } from 'lucide-react'
 import { FolderOpen } from 'lucide-react'
 import {
-  currentView, selectedFolder, displayTracks, tracks, filteredTracks,
+  currentView, selectedFolder, selectedAlbum, displayTracks, albumTracks, tracks, filteredTracks,
   isScanning, scanError, searchQuery,
   scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
@@ -12,6 +12,7 @@ import { getLastPlayed, restoreTrack } from '@/stores/player'
 import { Sidebar } from '@/components/Sidebar'
 import { Player } from '@/components/Player'
 import { ArtistsGrid } from '@/components/ArtistsGrid'
+import { AlbumsGrid } from '@/components/AlbumsGrid'
 import { TrackList } from '@/components/TrackList'
 import { SearchBar } from '@/components/SearchBar'
 
@@ -115,6 +116,21 @@ const MainContent = memo(() => {
       <TrackList
         tracks={displayTracks.value}
         title={selectedFolder.value ?? ''}
+        showBack
+        onBack={goBack}
+      />
+    )
+  }
+
+  if (view === 'albums') {
+    return <AlbumsGrid />
+  }
+
+  if (view === 'album-detail') {
+    return (
+      <TrackList
+        tracks={albumTracks.value}
+        title={selectedAlbum.value ?? ''}
         showBack
         onBack={goBack}
       />
