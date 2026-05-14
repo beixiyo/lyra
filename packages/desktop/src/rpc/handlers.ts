@@ -18,6 +18,22 @@ export const bunRequests = {
     const { scanAndParse } = await import('../music/scanner')
     return await scanAndParse(dir)
   },
+
+  getDefaultMusicDir: async () => {
+    const { homedir } = await import('node:os')
+    const { existsSync } = await import('node:fs')
+    const { join } = await import('node:path')
+
+    const home = homedir()
+
+    const xdgMusic = Bun.env.XDG_MUSIC_DIR
+    if (xdgMusic && existsSync(xdgMusic)) return xdgMusic
+
+    const musicDir = join(home, 'Music')
+    if (existsSync(musicDir)) return musicDir
+
+    return ''
+  },
 }
 
 export const bunMessages = {

@@ -16,10 +16,10 @@ export async function scanMusicFiles(dir: string): Promise<string[]> {
     .filter(e => {
       if (!e.isFile()) return false
       if (!AUDIO_EXTS.has(extname(e.name).toLowerCase())) return false
-      const rel = relative(dir, join(e.parentPath ?? e.path, e.name))
+      const rel = relative(dir, join(e.parentPath, e.name))
       return !rel.split('/').some(p => IGNORED_DIRS.has(p) || p.startsWith('.'))
     })
-    .map(e => join(e.parentPath ?? e.path, e.name))
+    .map(e => join(e.parentPath, e.name))
 }
 
 export async function parseMusicMetadata(filePath: string, scanRoot: string) {

@@ -1,12 +1,14 @@
 import { signal, computed } from '@preact/signals-react'
+import { persistedSignal } from './persist'
 import { rpc } from '@/ipc'
 import type { Track, ScanResult } from '@/types/music'
 
 export const tracks = signal<Track[]>([])
 export const isScanning = signal(false)
 export const scanError = signal<string | null>(null)
-export const currentView = signal<'artists' | 'songs' | 'artist-detail'>('artists')
+export const currentView = persistedSignal<'artists' | 'songs' | 'artist-detail'>('lyra:view', 'artists')
 export const selectedFolder = signal<string | null>(null)
+export const musicDir = persistedSignal('lyra:musicDir', '')
 
 export const folders = computed(() => {
   const map = new Map<string, Track[]>()
@@ -29,6 +31,15 @@ export const displayTracks = computed(() => {
   const folder = selectedFolder.value === '未分类' ? '' : selectedFolder.value
   return tracks.value.filter(t => t.folder === folder)
 })
+
+export async function detectMusicDir() {
+  try {
+    const dir = await rpc.request.getDefaultMusicDir({}) as string
+    if (dir) musicDir.value = dir
+  } catch (e) {
+    console.error('Failed to detect music dir:', e)
+  }
+}
 
 export async function scanLibrary(dir: string) {
   isScanning.value = true

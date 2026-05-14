@@ -1,25 +1,36 @@
-import { cn } from 'utils'
 import { memo } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { onMounted } from 'hooks'
 import { Loader2 } from 'lucide-react'
+import { FolderOpen } from 'lucide-react'
 import {
   currentView, selectedFolder, displayTracks, tracks,
   isScanning, scanError,
-  scanLibrary, goBack,
+  scanLibrary, goBack, musicDir, detectMusicDir,
 } from '@/stores/library'
+import { getLastPlayed, restoreTrack } from '@/stores/player'
 import { Sidebar } from '@/components/Sidebar'
 import { Player } from '@/components/Player'
 import { ArtistsGrid } from '@/components/ArtistsGrid'
 import { TrackList } from '@/components/TrackList'
 
-const MUSIC_DIR = '/home/dev/Music'
-
 export const App = memo(() => {
   useSignals()
 
-  onMounted(() => {
-    scanLibrary(MUSIC_DIR)
+  onMounted(async () => {
+    if (!musicDir.value) await detectMusicDir()
+    if (!musicDir.value) return
+
+    await scanLibrary(musicDir.value)
+
+    const last = getLastPlayed()
+    if (!last) return
+
+    const allTracks = tracks.value
+    const idx = allTracks.findIndex(t => t.filePath === last.filePath)
+    if (idx !== -1) {
+      restoreTrack(allTracks[idx], allTracks, idx, last.time)
+    }
   })
 
   return (
@@ -39,6 +50,15 @@ export const App = memo(() => {
 
 const MainContent = memo(() => {
   useSignals()
+
+  if (!musicDir.value) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-400">
+        <FolderOpen className="w-10 h-10 text-neutral-600" />
+        <p className="text-sm">请选择音乐目录以开始</p>
+      </div>
+    )
+  }
 
   if (isScanning.value) {
     return (
