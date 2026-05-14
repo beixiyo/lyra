@@ -4,8 +4,8 @@ import { onMounted } from 'hooks'
 import { Loader2 } from 'lucide-react'
 import { FolderOpen } from 'lucide-react'
 import {
-  currentView, selectedFolder, displayTracks, tracks,
-  isScanning, scanError,
+  currentView, selectedFolder, displayTracks, tracks, filteredTracks,
+  isScanning, scanError, searchQuery,
   scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
 import { getLastPlayed, restoreTrack } from '@/stores/player'
@@ -13,6 +13,7 @@ import { Sidebar } from '@/components/Sidebar'
 import { Player } from '@/components/Player'
 import { ArtistsGrid } from '@/components/ArtistsGrid'
 import { TrackList } from '@/components/TrackList'
+import { SearchBar } from '@/components/SearchBar'
 
 export const App = memo(() => {
   useSignals()
@@ -38,7 +39,13 @@ export const App = memo(() => {
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 overflow-y-auto px-8 py-7 custom-scrollbar">
+        {tracks.value.length > 0 && (
+          <div className="px-8 pt-5 shrink-0 flex justify-end">
+            <SearchBar className="w-64" />
+          </div>
+        )}
+
+        <div className="flex-1 min-h-0 overflow-y-auto px-8 py-5 custom-scrollbar">
           <MainContent />
         </div>
 
@@ -89,6 +96,14 @@ const MainContent = memo(() => {
     )
   }
 
+  if (searchQuery.value && filteredTracks.value.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
+        未找到匹配「{searchQuery.value}」的结果
+      </div>
+    )
+  }
+
   const view = currentView.value
 
   if (view === 'artists') {
@@ -109,7 +124,7 @@ const MainContent = memo(() => {
   if (view === 'songs') {
     return (
       <TrackList
-        tracks={tracks.value}
+        tracks={filteredTracks.value}
         title="所有歌曲"
       />
     )

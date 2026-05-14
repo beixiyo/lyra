@@ -9,8 +9,22 @@ export const scanError = signal<string | null>(null)
 export const currentView = persistedSignal<'artists' | 'songs' | 'artist-detail'>('lyra:view', 'artists')
 export const selectedFolder = signal<string | null>(null)
 export const musicDirs = persistedSignal<string[]>('lyra:musicDirs', [])
+export const searchQuery = signal('')
+
+function matchesQuery(t: Track, q: string) {
+  return t.title.toLowerCase().includes(q)
+    || t.artist.toLowerCase().includes(q)
+    || t.album.toLowerCase().includes(q)
+}
+
+export const filteredTracks = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q) return tracks.value
+  return tracks.value.filter(t => matchesQuery(t, q))
+})
 
 export const folders = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
   const map = new Map<string, Track[]>()
 
   for (const t of tracks.value) {
@@ -21,15 +35,21 @@ export const folders = computed(() => {
   }
 
   return [...map.entries()]
+    .filter(([name, items]) => {
+      if (!q) return true
+      if (name.toLowerCase().includes(q)) return true
+      return items.some(t => matchesQuery(t, q))
+    })
     .map(([name, items]) => ({ name, count: items.length, firstTrack: items[0] }))
     .sort((a, b) => a.name.localeCompare(b.name))
 })
 
 export const displayTracks = computed(() => {
-  if (!selectedFolder.value) return tracks.value
+  const base = filteredTracks.value
+  if (!selectedFolder.value) return base
 
   const folder = selectedFolder.value === '未分类' ? '' : selectedFolder.value
-  return tracks.value.filter(t => t.folder === folder)
+  return base.filter(t => t.folder === folder)
 })
 
 export async function detectMusicDirs() {
