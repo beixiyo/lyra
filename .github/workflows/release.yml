@@ -1,0 +1,113 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Determine build environment
+        id: build-env
+        run: |
+          if [[ "${{ github.ref_name }}" == *"-canary"* ]]; then
+            echo "env=canary" >> $GITHUB_OUTPUT
+          else
+            echo "env=stable" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build app
+        run: |
+          bun run build:app
+          if [ "${{ steps.build-env.outputs.env }}" = "canary" ]; then
+            bun run build:canary
+          else
+            bun run build:stable
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-artifacts
+          path: packages/desktop/artifacts/*
+
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Determine build environment
+        id: build-env
+        run: |
+          if [[ "${{ github.ref_name }}" == *"-canary"* ]]; then
+            echo "env=canary" >> $GITHUB_OUTPUT
+          else
+            echo "env=stable" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build app
+        env:
+          ELECTROBUN_DEVELOPER_ID: ${{ secrets.ELECTROBUN_DEVELOPER_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          bun run build:app
+          if [ "${{ steps.build-env.outputs.env }}" = "canary" ]; then
+            bun run build:canary
+          else
+            bun run build:stable
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-artifacts
+          path: packages/desktop/artifacts/*
+
+  release:
+    needs: [build-linux, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Determine prerelease
+        id: pre
+        run: |
+          if [[ "${{ github.ref_name }}" == *"-canary"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          draft: false
+          prerelease: ${{ steps.pre.outputs.prerelease == 'true' }}
+          generate_release_notes: true

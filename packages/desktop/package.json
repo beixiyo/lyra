@@ -1,0 +1,20 @@
+{
+  "name": "desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    "./rpc": "./src/rpc/index.ts"
+  },
+  "scripts": {
+    "dev": "bun ../../scripts/ensure-display.ts electrobun dev",
+    "dev:watch": "bun ../../scripts/ensure-display.ts electrobun dev --watch",
+    "build": "electrobun build",
+    "build:canary": "electrobun build --env=canary",
+    "build:stable": "electrobun build --env=stable"
+  },
+  "dependencies": {
+    "electrobun": "latest",
+    "music-metadata": "^11.12.3"
+  }
+}
