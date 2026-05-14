@@ -14,6 +14,16 @@
 - [x] 搜索 & 筛选（标题 / 艺术家 / 专辑模糊匹配）
 - [x] 专辑视图（按专辑聚合，封面网格）
 
+## Phase 1.5 — i18n
+
+> 国际化基础设施，在功能堆积前尽早铺设
+
+- [x] i18n 初始化（i18next + react-i18next + 浏览器语言检测）
+- [x] 翻译资源结构（`locales/zh-CN/`、`locales/en-US/`）
+- [x] 提取全部硬编码中文为 key（Sidebar、搜索、播放器、状态提示等）
+- [x] 语言切换 UI + 持久化
+- [ ] 后续新增文案统一走 i18n key，禁止硬编码
+
 ## Phase 2 — Theme System
 
 > TailwindCSS 4 `@theme` Token 化，可定制主题
@@ -90,4 +100,4 @@
 
 ---
 
-**优先级排序**：P1 Core（播放 UI）→ P2 Theme → P3 Keybindings → P4 Lyrics → P5 Playback（EQ 最后）→ P6 System → P7 Distribution
+**优先级排序**：P1 Core → **P1.5 i18n** → P2 Theme → P3 Keybindings → P4 Lyrics → P5 Playback（EQ 最后）→ P6 System → P7 Distribution

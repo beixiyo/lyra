@@ -1,6 +1,7 @@
 import { cn } from 'utils'
 import { formatDuration } from 'utils'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
 import { playTrack, currentTrack, isPlaying } from '@/stores/player'
@@ -15,6 +16,7 @@ export const TrackList = memo<TrackListProps>(({
   className,
 }) => {
   useSignals()
+  const { t } = useTranslation()
 
   const handlePlay = useLatestCallback((track: Track, index: number) => {
     playTrack(track, tracks, index)
@@ -32,7 +34,7 @@ export const TrackList = memo<TrackListProps>(({
               onClick={onBack}
               className="text-rose-500 text-sm hover:underline underline-offset-2"
             >
-              艺术家
+              {t('trackList.back')}
             </button>
           )}
 
@@ -46,9 +48,9 @@ export const TrackList = memo<TrackListProps>(({
 
       <div className="flex items-center gap-4 px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-neutral-500 border-b border-white/[0.06]">
         <span className="w-8 text-center">#</span>
-        <span className="flex-1">标题</span>
-        <span className="w-44 hidden sm:block">专辑</span>
-        <span className="w-16 text-right">时长</span>
+        <span className="flex-1">{t('trackList.colTitle')}</span>
+        <span className="w-44 hidden sm:block">{t('trackList.colAlbum')}</span>
+        <span className="w-16 text-right">{t('trackList.colDuration')}</span>
       </div>
 
       <div className="flex flex-col">

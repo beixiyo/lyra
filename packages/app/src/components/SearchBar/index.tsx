@@ -2,12 +2,14 @@ import { cn } from 'utils'
 import { memo, useRef } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
+import { useTranslation } from 'react-i18next'
 import { Search, X } from 'lucide-react'
 import { searchQuery } from '@/stores/library'
 
 export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
   useSignals()
 
+  const { t } = useTranslation()
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleChange = useLatestCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +33,7 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
         type="text"
         value={searchQuery.value}
         onChange={handleChange}
-        placeholder="搜索歌曲、艺术家、专辑…"
+        placeholder={t('search.placeholder')}
         className={cn(
           'w-full pl-8 pr-8 py-1.5 text-[13px]',
           'bg-white/[0.06] rounded-lg border border-transparent',

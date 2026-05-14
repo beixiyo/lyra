@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
+import { useTranslation } from 'react-i18next'
 import { onMounted } from 'hooks'
 import { Loader2 } from 'lucide-react'
 import { FolderOpen } from 'lucide-react'
@@ -15,6 +16,7 @@ import { ArtistsGrid } from '@/components/ArtistsGrid'
 import { AlbumsGrid } from '@/components/AlbumsGrid'
 import { TrackList } from '@/components/TrackList'
 import { SearchBar } from '@/components/SearchBar'
+import { Settings } from '@/components/Settings'
 
 export const App = memo(() => {
   useSignals()
@@ -58,6 +60,7 @@ export const App = memo(() => {
 
 const MainContent = memo(() => {
   useSignals()
+  const { t } = useTranslation()
 
   if (musicDirs.value.length === 0) {
     return (
@@ -66,7 +69,7 @@ const MainContent = memo(() => {
         className="flex flex-col items-center justify-center h-full gap-3 text-neutral-400 hover:text-neutral-200 transition-colors w-full"
       >
         <FolderOpen className="w-10 h-10 text-neutral-600" />
-        <p className="text-sm">点击选择音乐目录</p>
+        <p className="text-sm">{t('app.pickMusicDir')}</p>
       </button>
     )
   }
@@ -75,7 +78,7 @@ const MainContent = memo(() => {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-400">
         <Loader2 className="w-6 h-6 animate-spin" />
-        <p className="text-sm">正在扫描音乐库…</p>
+        <p className="text-sm">{t('app.scanning')}</p>
       </div>
     )
   }
@@ -83,7 +86,7 @@ const MainContent = memo(() => {
   if (scanError.value) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-2 text-neutral-400">
-        <p className="text-sm">扫描失败</p>
+        <p className="text-sm">{t('app.scanFailed')}</p>
         <p className="text-xs text-neutral-600">{scanError.value}</p>
       </div>
     )
@@ -92,7 +95,7 @@ const MainContent = memo(() => {
   if (tracks.value.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
-        暂无音乐
+        {t('app.noMusic')}
       </div>
     )
   }
@@ -100,7 +103,7 @@ const MainContent = memo(() => {
   if (searchQuery.value && filteredTracks.value.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-neutral-500 text-sm">
-        未找到匹配「{searchQuery.value}」的结果
+        {t('app.noSearchResults', { query: searchQuery.value })}
       </div>
     )
   }
@@ -141,9 +144,13 @@ const MainContent = memo(() => {
     return (
       <TrackList
         tracks={filteredTracks.value}
-        title="所有歌曲"
+        title={t('nav.allSongs')}
       />
     )
+  }
+
+  if (view === 'settings') {
+    return <Settings />
   }
 
   return null

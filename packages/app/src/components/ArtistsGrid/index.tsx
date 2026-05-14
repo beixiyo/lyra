@@ -1,5 +1,6 @@
 import { cn } from 'utils'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
 import { folders, selectFolder } from '@/stores/library'
@@ -7,13 +8,14 @@ import { CoverArt } from '../CoverArt'
 
 export const ArtistsGrid = memo<ArtistsGridProps>(({ style, className }) => {
   useSignals()
+  const { t } = useTranslation()
 
   return (
     <div
       className={cn('flex flex-col', className)}
       style={style}
     >
-      <h1 className="text-[28px] font-bold tracking-tight mb-6">艺术家</h1>
+      <h1 className="text-[28px] font-bold tracking-tight mb-6">{t('nav.artists')}</h1>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
         {folders.value.map(folder => (
@@ -38,6 +40,7 @@ const ArtistCard = memo<ArtistCardProps>(({
   coverFilePath,
   onSelect,
 }) => {
+  const { t } = useTranslation()
   const handleClick = useLatestCallback(() => onSelect(name))
 
   return (
@@ -56,8 +59,8 @@ const ArtistCard = memo<ArtistCardProps>(({
       />
 
       <div className="text-center w-full">
-        <p className="text-[13px] font-medium truncate">{name}</p>
-        <p className="text-[11px] text-neutral-500 mt-0.5">{count} 首歌曲</p>
+        <p className="text-[13px] font-medium truncate">{name || t('library.uncategorized')}</p>
+        <p className="text-[11px] text-neutral-500 mt-0.5">{t('library.trackCount', { count })}</p>
       </div>
     </button>
   )

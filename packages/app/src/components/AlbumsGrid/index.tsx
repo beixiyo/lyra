@@ -1,5 +1,6 @@
 import { cn } from 'utils'
 import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
 import { albums, selectAlbum } from '@/stores/library'
@@ -7,13 +8,14 @@ import { CoverArt } from '../CoverArt'
 
 export const AlbumsGrid = memo<AlbumsGridProps>(({ style, className }) => {
   useSignals()
+  const { t } = useTranslation()
 
   return (
     <div
       className={cn('flex flex-col', className)}
       style={style}
     >
-      <h1 className="text-[28px] font-bold tracking-tight mb-6">专辑</h1>
+      <h1 className="text-[28px] font-bold tracking-tight mb-6">{t('nav.albums')}</h1>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-4">
         {albums.value.map(album => (
@@ -38,6 +40,7 @@ const AlbumCard = memo<AlbumCardProps>(({
   coverFilePath,
   onSelect,
 }) => {
+  const { t } = useTranslation()
   const handleClick = useLatestCallback(() => onSelect(name))
 
   return (
@@ -56,7 +59,7 @@ const AlbumCard = memo<AlbumCardProps>(({
       />
 
       <div className="text-center w-full">
-        <p className="text-[13px] font-medium truncate">{name}</p>
+        <p className="text-[13px] font-medium truncate">{name || t('library.unknownAlbum')}</p>
         <p className="text-[11px] text-neutral-500 mt-0.5 truncate">{artist}</p>
       </div>
     </button>

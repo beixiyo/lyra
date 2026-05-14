@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "library": "资料库",
+    "artists": "艺术家",
+    "albums": "专辑",
+    "allSongs": "所有歌曲",
+    "settings": "设置"
+  },
+  "sidebar": {
+    "directories": "目录",
+    "addDirectory": "添加目录"
+  },
+  "app": {
+    "pickMusicDir": "点击选择音乐目录",
+    "scanning": "正在扫描音乐库…",
+    "scanFailed": "扫描失败",
+    "noMusic": "暂无音乐",
+    "noSearchResults": "未找到匹配「{{query}}」的结果"
+  },
+  "search": {
+    "placeholder": "搜索歌曲、艺术家、专辑…"
+  },
+  "trackList": {
+    "back": "艺术家",
+    "colNumber": "#",
+    "colTitle": "标题",
+    "colAlbum": "专辑",
+    "colDuration": "时长"
+  },
+  "library": {
+    "uncategorized": "未分类",
+    "unknownAlbum": "未知专辑",
+    "trackCount_one": "{{count}} 首歌曲",
+    "trackCount_other": "{{count}} 首歌曲"
+  },
+  "settings": {
+    "title": "设置",
+    "language": "语言",
+    "musicDirs": "音乐目录",
+    "addDirectory": "添加目录",
+    "noDirectories": "未配置音乐目录",
+    "version": "版本"
+  }
+}

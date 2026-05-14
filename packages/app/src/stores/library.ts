@@ -29,7 +29,7 @@ export const folders = computed(() => {
   const map = new Map<string, Track[]>()
 
   for (const t of tracks.value) {
-    const key = t.folder || '未分类'
+    const key = t.folder
     const arr = map.get(key)
     if (arr) arr.push(t)
     else map.set(key, [t])
@@ -50,7 +50,7 @@ export const albums = computed(() => {
   const map = new Map<string, Track[]>()
 
   for (const t of tracks.value) {
-    const key = t.album || '未知专辑'
+    const key = t.album
     const arr = map.get(key)
     if (arr) arr.push(t)
     else map.set(key, [t])
@@ -76,7 +76,7 @@ export const albumTracks = computed(() => {
   if (!selectedAlbum.value) return []
 
   const base = filteredTracks.value
-  const album = selectedAlbum.value === '未知专辑' ? '' : selectedAlbum.value
+  const album = selectedAlbum.value ?? ''
   return base
     .filter(t => (t.album || '') === album)
     .sort((a, b) => (a.track?.no ?? 0) - (b.track?.no ?? 0))
@@ -86,7 +86,7 @@ export const displayTracks = computed(() => {
   const base = filteredTracks.value
   if (!selectedFolder.value) return base
 
-  const folder = selectedFolder.value === '未分类' ? '' : selectedFolder.value
+  const folder = selectedFolder.value ?? ''
   return base.filter(t => t.folder === folder)
 })
 
@@ -171,4 +171,4 @@ export function goBack() {
   else currentView.value = 'artists'
 }
 
-type ViewType = 'artists' | 'songs' | 'artist-detail' | 'albums' | 'album-detail'
+type ViewType = 'artists' | 'songs' | 'artist-detail' | 'albums' | 'album-detail' | 'settings'

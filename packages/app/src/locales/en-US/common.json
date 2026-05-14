@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "library": "Library",
+    "artists": "Artists",
+    "albums": "Albums",
+    "allSongs": "All Songs",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "directories": "Directories",
+    "addDirectory": "Add directory"
+  },
+  "app": {
+    "pickMusicDir": "Click to select music directory",
+    "scanning": "Scanning music library…",
+    "scanFailed": "Scan failed",
+    "noMusic": "No music found",
+    "noSearchResults": "No results matching \"{{query}}\""
+  },
+  "search": {
+    "placeholder": "Search songs, artists, albums…"
+  },
+  "trackList": {
+    "back": "Artists",
+    "colNumber": "#",
+    "colTitle": "Title",
+    "colAlbum": "Album",
+    "colDuration": "Duration"
+  },
+  "library": {
+    "uncategorized": "Uncategorized",
+    "unknownAlbum": "Unknown Album",
+    "trackCount_one": "{{count}} song",
+    "trackCount_other": "{{count}} songs"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "musicDirs": "Music Directories",
+    "addDirectory": "Add directory",
+    "noDirectories": "No music directories configured",
+    "version": "Version"
+  }
+}
