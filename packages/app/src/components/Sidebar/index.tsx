@@ -2,8 +2,8 @@ import { cn } from 'utils'
 import { memo } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
-import { Disc3, Users, ListMusic } from 'lucide-react'
-import { currentView, goBack } from '@/stores/library'
+import { Disc3, Users, ListMusic, FolderPlus, X } from 'lucide-react'
+import { currentView, goBack, musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
 
 const NAV_ITEMS = [
   { id: 'artists' as const, label: '艺术家', icon: Users },
@@ -63,10 +63,56 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
           })}
         </div>
       </nav>
+
+      <DirManager />
     </aside>
   )
 })
 
 Sidebar.displayName = 'Sidebar'
+
+const DirManager = memo(() => {
+  useSignals()
+
+  const dirs = musicDirs.value
+
+  return (
+    <div className="px-3 pb-4">
+      <div className="flex items-center justify-between px-2.5 mb-2">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+          目录
+        </p>
+        <button
+          onClick={pickAndAddDirs}
+          className="text-neutral-500 hover:text-neutral-200 transition-colors"
+          title="添加目录"
+        >
+          <FolderPlus className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <div className="space-y-0.5 max-h-32 overflow-y-auto custom-scrollbar">
+        {dirs.map(dir => (
+          <div
+            key={dir}
+            className="group flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[12px] text-neutral-500 hover:bg-white/[0.04]"
+          >
+            <span className="flex-1 truncate" title={dir}>
+              {dir.split('/').pop()}
+            </span>
+            <button
+              onClick={() => removeMusicDir(dir)}
+              className="opacity-0 group-hover:opacity-100 text-neutral-600 hover:text-neutral-300 transition-opacity shrink-0"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})
+
+DirManager.displayName = 'DirManager'
 
 export type SidebarProps = {} & React.HTMLAttributes<HTMLElement>

@@ -8,7 +8,7 @@ export const isScanning = signal(false)
 export const scanError = signal<string | null>(null)
 export const currentView = persistedSignal<'artists' | 'songs' | 'artist-detail'>('lyra:view', 'artists')
 export const selectedFolder = signal<string | null>(null)
-export const musicDir = persistedSignal('lyra:musicDir', '')
+export const musicDirs = persistedSignal<string[]>('lyra:musicDirs', [])
 
 export const folders = computed(() => {
   const map = new Map<string, Track[]>()
@@ -32,29 +32,65 @@ export const displayTracks = computed(() => {
   return tracks.value.filter(t => t.folder === folder)
 })
 
-export async function detectMusicDir() {
+export async function detectMusicDirs() {
   try {
     const dir = await rpc.request.getDefaultMusicDir({}) as string
-    if (dir) musicDir.value = dir
+    if (dir) musicDirs.value = [dir]
   } catch (e) {
     console.error('Failed to detect music dir:', e)
   }
 }
 
-export async function scanLibrary(dir: string) {
+export async function scanLibrary(dirs: string[]) {
+  if (dirs.length === 0) return
+
   isScanning.value = true
   scanError.value = null
 
   try {
-    const result = await rpc.request.scanMusicDir({ dir }) as ScanResult
-    tracks.value = result.results
-    console.log(`Scanned ${result.total} files, ${result.results.length} parsed, ${result.errors.length} errors`)
+    const results = await Promise.all(
+      dirs.map(dir => rpc.request.scanMusicDir({ dir }) as Promise<ScanResult>),
+    )
+
+    const allTracks: Track[] = []
+    let total = 0
+    let errors = 0
+
+    for (const r of results) {
+      allTracks.push(...r.results)
+      total += r.total
+      errors += r.errors.length
+    }
+
+    tracks.value = allTracks
+    console.log(`Scanned ${total} files, ${allTracks.length} parsed, ${errors} errors`)
   } catch (e) {
     scanError.value = String(e)
     console.error('Scan failed:', e)
   } finally {
     isScanning.value = false
   }
+}
+
+export async function pickAndAddDirs() {
+  try {
+    const paths = await rpc.request.pickMusicDirs({}) as string[]
+    if (!paths?.length) return
+
+    const existing = new Set(musicDirs.value)
+    const newDirs = paths.filter(p => !existing.has(p))
+    if (newDirs.length === 0) return
+
+    musicDirs.value = [...musicDirs.value, ...newDirs]
+    await scanLibrary(musicDirs.value)
+  } catch (e) {
+    console.error('Pick dirs failed:', e)
+  }
+}
+
+export async function removeMusicDir(dir: string) {
+  musicDirs.value = musicDirs.value.filter(d => d !== dir)
+  tracks.value = tracks.value.filter(t => !t.filePath.startsWith(dir))
 }
 
 export function selectFolder(folder: string) {

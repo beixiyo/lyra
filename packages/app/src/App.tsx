@@ -6,7 +6,7 @@ import { FolderOpen } from 'lucide-react'
 import {
   currentView, selectedFolder, displayTracks, tracks,
   isScanning, scanError,
-  scanLibrary, goBack, musicDir, detectMusicDir,
+  scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
 import { getLastPlayed, restoreTrack } from '@/stores/player'
 import { Sidebar } from '@/components/Sidebar'
@@ -18,10 +18,10 @@ export const App = memo(() => {
   useSignals()
 
   onMounted(async () => {
-    if (!musicDir.value) await detectMusicDir()
-    if (!musicDir.value) return
+    if (musicDirs.value.length === 0) await detectMusicDirs()
+    if (musicDirs.value.length === 0) return
 
-    await scanLibrary(musicDir.value)
+    await scanLibrary(musicDirs.value)
 
     const last = getLastPlayed()
     if (!last) return
@@ -51,12 +51,15 @@ export const App = memo(() => {
 const MainContent = memo(() => {
   useSignals()
 
-  if (!musicDir.value) {
+  if (musicDirs.value.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-neutral-400">
+      <button
+        onClick={pickAndAddDirs}
+        className="flex flex-col items-center justify-center h-full gap-3 text-neutral-400 hover:text-neutral-200 transition-colors w-full"
+      >
         <FolderOpen className="w-10 h-10 text-neutral-600" />
-        <p className="text-sm">请选择音乐目录以开始</p>
-      </div>
+        <p className="text-sm">点击选择音乐目录</p>
+      </button>
     )
   }
 
