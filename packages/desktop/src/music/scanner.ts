@@ -1,6 +1,7 @@
 import { readdir } from 'node:fs/promises'
 import { extname, join, relative } from 'node:path'
-import { parseFile } from 'music-metadata'
+import { parseFile, TimestampFormat } from 'music-metadata'
+import type { ILyricsTag } from 'music-metadata'
 
 const AUDIO_EXTS = new Set([
   '.mp3', '.flac', '.wav', '.ogg', '.m4a',
@@ -89,12 +90,26 @@ function extractFileName(filePath: string): string {
 }
 
 function extractLyrics(metadata: Awaited<ReturnType<typeof parseFile>>): string | null {
-  const lyrics = metadata.common.lyrics
-  if (!lyrics?.length) return null
+  const tags = metadata.common.lyrics
+  if (!tags?.length) return null
 
-  const first = lyrics[0]
-  if (typeof first === 'string') return first
-  if (first && 'text' in first) return first.text ?? null
+  const tag: ILyricsTag = tags[0]
 
-  return null
+  // Prefer SYLT (synchronized lyrics): convert ms timestamps → LRC format
+  if (tag.timeStampFormat === TimestampFormat.milliseconds && tag.syncText.length > 0) {
+    const lrc = tag.syncText
+      .filter(line => line.text.trim())
+      .map(line => {
+        const ms = line.timestamp ?? 0
+        const min = Math.floor(ms / 60000)
+        const sec = Math.floor((ms % 60000) / 1000)
+        const cs = Math.floor((ms % 1000) / 10)
+        return `[${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}]${line.text}`
+      })
+      .join('\n')
+    return lrc || null
+  }
+
+  // Fall back to USLT (unsynchronized plain text)
+  return tag.text ?? null
 }
