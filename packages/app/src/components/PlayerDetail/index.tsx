@@ -7,6 +7,7 @@ import { currentTrack, getCoverUrl } from '@/stores/player'
 import { showPlayerDetail, closePlayerDetail, parsedLyrics } from '@/stores/lyrics'
 import { PlaybackControls, VolumeControl } from '../Player'
 import { LrcView, PlainView } from '../Lyrics'
+import { BlurBgImg } from 'comps'
 
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
@@ -17,34 +18,41 @@ export const PlayerDetail = memo(() => {
   const track = currentTrack.value
 
   return (
-    <div
+    <BlurBgImg
+      img={track ? getCoverUrl(track.filePath) : ''}
+      blur="80px"
       className={cn(
-        'fixed inset-0 z-50 flex flex-col',
-        'bg-bg/[0.98] backdrop-blur-2xl',
+        'fixed inset-0 z-50',
         'transition-transform duration-500 ease-[cubic-bezier(.32,.72,0,1)]',
         show ? 'translate-y-0' : 'translate-y-full',
       )}
     >
-      {/* Header */}
-      <div className="h-14 flex items-center px-6 shrink-0">
-        <button
-          onClick={closePlayerDetail}
-          className="text-muted hover:text-primary transition-colors p-1 -ml-1 rounded-lg"
-          aria-label="Close"
-        >
-          <ChevronDown className="w-5 h-5" />
-        </button>
+      {/* Dark overlay to keep content legible */}
+      <div className="absolute inset-0 bg-bg/80" />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col h-full w-full">
+        {/* Header */}
+        <div className="h-14 flex items-center px-6 shrink-0">
+          <button
+            onClick={closePlayerDetail}
+            className="text-muted hover:text-primary transition-colors p-1 -ml-1 rounded-lg"
+            aria-label="Close"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 flex min-h-0 px-12 pb-10 gap-12">
+          <TrackSection track={track} />
+
+          <div className="w-px bg-line/[0.06] self-stretch shrink-0" />
+
+          <LyricsSection />
+        </div>
       </div>
-
-      {/* Body */}
-      <div className="flex-1 flex min-h-0 px-12 pb-10 gap-12">
-        <TrackSection track={track} />
-
-        <div className="w-px bg-line/[0.06] self-stretch shrink-0" />
-
-        <LyricsSection />
-      </div>
-    </div>
+    </BlurBgImg>
   )
 })
 
