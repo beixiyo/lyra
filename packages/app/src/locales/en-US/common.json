@@ -36,9 +36,29 @@
   "settings": {
     "title": "Settings",
     "language": "Language",
+    "theme": "Theme",
+    "dynamicAccent": "Dynamic accent from album art",
     "musicDirs": "Music Directories",
     "addDirectory": "Add directory",
     "noDirectories": "No music directories configured",
+    "keybindings": "Keyboard Shortcuts",
     "version": "Version"
+  },
+  "lyrics": {
+    "title": "Lyrics",
+    "noLyrics": "No lyrics available"
+  },
+  "keybindings": {
+    "togglePlay": "Play / Pause",
+    "nextTrack": "Next track",
+    "prevTrack": "Previous track",
+    "volumeUp": "Volume up",
+    "volumeDown": "Volume down",
+    "seekForward": "Seek forward 5 s",
+    "seekBack": "Seek back 5 s",
+    "toggleMute": "Toggle mute",
+    "toggleShuffle": "Toggle shuffle",
+    "cycleRepeat": "Cycle repeat mode",
+    "toggleLyrics": "Show / hide lyrics"
   }
 }

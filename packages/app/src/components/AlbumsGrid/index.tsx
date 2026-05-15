@@ -48,7 +48,7 @@ const AlbumCard = memo<AlbumCardProps>(({
       onClick={handleClick}
       className={cn(
         'flex flex-col items-center gap-3 p-4 rounded-xl transition-colors',
-        'hover:bg-white/[0.04] active:scale-[0.98] active:transition-transform',
+        'hover:bg-overlay/[0.04] active:scale-[0.98] active:transition-transform',
       )}
     >
       <CoverArt
@@ -60,7 +60,7 @@ const AlbumCard = memo<AlbumCardProps>(({
 
       <div className="text-center w-full">
         <p className="text-[13px] font-medium truncate">{name || t('library.unknownAlbum')}</p>
-        <p className="text-[11px] text-neutral-500 mt-0.5 truncate">{artist}</p>
+        <p className="text-[11px] text-muted mt-0.5 truncate">{artist}</p>
       </div>
     </button>
   )

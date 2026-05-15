@@ -26,7 +26,7 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
       className={cn('relative flex items-center', className)}
       style={style}
     >
-      <Search className="absolute left-2.5 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+      <Search className="absolute left-2.5 w-3.5 h-3.5 text-muted pointer-events-none" />
 
       <input
         ref={inputRef}
@@ -36,9 +36,9 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
         placeholder={t('search.placeholder')}
         className={cn(
           'w-full pl-8 pr-8 py-1.5 text-[13px]',
-          'bg-white/[0.06] rounded-lg border border-transparent',
-          'text-neutral-200 placeholder:text-neutral-500',
-          'focus:outline-none focus:border-white/[0.1] focus:bg-white/[0.08]',
+          'bg-overlay/[0.06] rounded-lg border border-transparent',
+          'text-primary placeholder:text-muted',
+          'focus:outline-none focus:border-line/[0.1] focus:bg-overlay/[0.08]',
           'transition-colors',
         )}
       />
@@ -46,7 +46,7 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
       {searchQuery.value && (
         <button
           onClick={handleClear}
-          className="absolute right-2.5 text-neutral-500 hover:text-neutral-300 transition-colors"
+          className="absolute right-2.5 text-muted hover:text-secondary transition-colors"
         >
           <X className="w-3.5 h-3.5" />
         </button>

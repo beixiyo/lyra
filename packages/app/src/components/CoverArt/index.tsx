@@ -15,7 +15,7 @@ export const CoverArt = memo<CoverArtProps>(({
     return (
       <div
         className={cn(
-          'flex items-center justify-center bg-neutral-800/80 text-neutral-600 shrink-0',
+          'flex items-center justify-center bg-raised/80 text-muted shrink-0',
           className,
         )}
         style={{ width: size, height: size }}

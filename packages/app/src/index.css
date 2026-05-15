@@ -1,18 +1,33 @@
 @import 'tailwindcss';
 
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+/* ─── Semantic Design Tokens ─────────────────────────────────────────────────
+   These CSS custom properties are defined in @theme so Tailwind generates
+   semantic utility classes: bg-bg, bg-surface, text-primary, text-accent, etc.
+   Runtime theme switching works by overriding these vars on :root via JS.
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Backgrounds */
+  --color-bg:      #0a0a0a;
+  --color-surface: #171717;
+  --color-raised:  #262626;
+
+  /* Text */
+  --color-primary:   #fafafa;
+  --color-secondary: #a3a3a3;
+  --color-muted:     #525252;
+
+  /* Accent / highlight */
+  --color-accent: #f43f5e;
+
+  /* Interactive overlay — use with opacity modifier e.g. bg-overlay/[0.04] */
+  --color-overlay: #ffffff;
+
+  /* Border reference — use with opacity modifier e.g. border-line/[0.06] */
+  --color-line: #ffffff;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 3px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
+/* ─── Scrollbar ─────────────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar        { width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track  { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb  { background: rgba(255, 255, 255, 0.08); border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.15); }

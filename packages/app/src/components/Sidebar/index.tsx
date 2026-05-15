@@ -29,18 +29,18 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
     <aside
       className={cn(
         'w-56 h-full flex flex-col shrink-0',
-        'bg-neutral-900/40 border-r border-white/[0.06]',
+        'bg-surface/40 border-r border-line/[0.06]',
         className,
       )}
       style={style}
     >
       <div className="flex items-center gap-2.5 px-5 pt-7 pb-5">
-        <Disc3 className="w-5 h-5 text-rose-500" />
-        <span className="text-[15px] font-semibold tracking-wide">Lyra</span>
+        <Disc3 className="w-5 h-5 text-accent" />
+        <span className="text-[15px] font-semibold tracking-wide text-primary">Lyra</span>
       </div>
 
       <nav className="flex-1 px-3">
-        <p className="px-2.5 mb-2 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
+        <p className="px-2.5 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">
           {t('nav.library')}
         </p>
 
@@ -58,8 +58,8 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
                 className={cn(
                   'flex items-center gap-2.5 w-full px-2.5 py-[7px] rounded-lg text-[13px] transition-colors',
                   active
-                    ? 'bg-white/[0.08] text-white font-medium'
-                    : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.04]',
+                    ? 'bg-overlay/[0.08] text-primary font-medium'
+                    : 'text-secondary hover:text-primary hover:bg-overlay/[0.04]',
                 )}
               >
                 <item.icon className="w-[16px] h-[16px]" />
@@ -76,8 +76,8 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
           className={cn(
             'flex items-center gap-2.5 w-full px-2.5 py-[7px] rounded-lg text-[13px] transition-colors',
             currentView.value === 'settings'
-              ? 'bg-white/[0.08] text-white font-medium'
-              : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.04]',
+              ? 'bg-overlay/[0.08] text-primary font-medium'
+              : 'text-secondary hover:text-primary hover:bg-overlay/[0.04]',
           )}
         >
           <Settings className="w-[16px] h-[16px]" />

@@ -36,9 +36,29 @@
   "settings": {
     "title": "设置",
     "language": "语言",
+    "theme": "主题",
+    "dynamicAccent": "专辑封面动态强调色",
     "musicDirs": "音乐目录",
     "addDirectory": "添加目录",
     "noDirectories": "未配置音乐目录",
+    "keybindings": "键盘快捷键",
     "version": "版本"
+  },
+  "lyrics": {
+    "title": "歌词",
+    "noLyrics": "暂无歌词"
+  },
+  "keybindings": {
+    "togglePlay": "播放 / 暂停",
+    "nextTrack": "下一首",
+    "prevTrack": "上一首",
+    "volumeUp": "音量增大",
+    "volumeDown": "音量减小",
+    "seekForward": "快进 5 秒",
+    "seekBack": "快退 5 秒",
+    "toggleMute": "静音",
+    "toggleShuffle": "随机播放",
+    "cycleRepeat": "切换循环模式",
+    "toggleLyrics": "显示 / 隐藏歌词"
   }
 }
