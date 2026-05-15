@@ -8,6 +8,7 @@ export const BlurBgImg = memo<BlurBgImgProps>((
     imgClassName,
     img,
     blur = '15px',
+    showForeground = true,
     children,
     ...imgProps
   },
@@ -25,11 +26,13 @@ export const BlurBgImg = memo<BlurBgImgProps>((
         style={{ width: '125%', height: '125%', filter: `blur(${blur})` }}
       />
 
-      <div className={cn('relative z-[2] flex justify-center items-center size-full', imgClassName)}>
-        {children ?? (
-          <img src={img} className="h-full object-contain" {...imgProps} />
-        )}
-      </div>
+      {showForeground && (
+        <div className={cn('relative z-[2] flex justify-center items-center size-full', imgClassName)}>
+          {children ?? (
+            <img src={img} className="h-full object-contain" {...imgProps} />
+          )}
+        </div>
+      )}
     </div>
   )
 })
@@ -42,5 +45,11 @@ export type BlurBgImgProps = {
   /** 模糊半径，默认 15px */
   blur?: string
   imgClassName?: string
+  /**
+   * 是否渲染前景层（原图或 children），默认 true。
+   * 设为 false 时只渲染模糊背景，适合纯背景装饰场景。
+   * @default true
+   */
+  showForeground?: boolean
 } & React.PropsWithChildren<React.HTMLAttributes<HTMLDivElement>>
   & Pick<React.ImgHTMLAttributes<HTMLImageElement>, 'onError' | 'onLoad' | 'crossOrigin'>

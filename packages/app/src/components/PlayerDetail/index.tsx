@@ -18,41 +18,46 @@ export const PlayerDetail = memo(() => {
   const track = currentTrack.value
 
   return (
-    <BlurBgImg
-      img={track ? getCoverUrl(track.filePath) : ''}
-      blur="80px"
+    <div
       className={cn(
-        'fixed inset-0 z-50',
+        'fixed inset-0 z-50 flex flex-col',
         'transition-transform duration-500 ease-[cubic-bezier(.32,.72,0,1)]',
         show ? 'translate-y-0' : 'translate-y-full',
       )}
     >
-      {/* Dark overlay to keep content legible */}
+      {/* Ambient blur background */}
+      {track && (
+        <BlurBgImg
+          img={getCoverUrl(track.filePath)}
+          blur="80px"
+          showForeground={false}
+          className="absolute inset-0"
+        />
+      )}
+
+      {/* Dark overlay */}
       <div className="absolute inset-0 bg-bg/80" />
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col h-full w-full">
-        {/* Header */}
-        <div className="h-14 flex items-center px-6 shrink-0">
-          <button
-            onClick={closePlayerDetail}
-            className="text-muted hover:text-primary transition-colors p-1 -ml-1 rounded-lg"
-            aria-label="Close"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 flex min-h-0 px-12 pb-10 gap-12">
-          <TrackSection track={track} />
-
-          <div className="w-px bg-line/[0.06] self-stretch shrink-0" />
-
-          <LyricsSection />
-        </div>
+      {/* Header */}
+      <div className="relative z-10 h-14 flex items-center px-6 shrink-0">
+        <button
+          onClick={closePlayerDetail}
+          className="text-muted hover:text-primary transition-colors p-1 -ml-1 rounded-lg"
+          aria-label="Close"
+        >
+          <ChevronDown className="w-5 h-5" />
+        </button>
       </div>
-    </BlurBgImg>
+
+      {/* Body */}
+      <div className="relative z-10 flex-1 flex min-h-0 px-12 pb-10 gap-12">
+        <TrackSection track={track} />
+
+        <div className="w-px bg-line/[0.06] self-stretch shrink-0" />
+
+        <LyricsSection />
+      </div>
+    </div>
   )
 })
 
