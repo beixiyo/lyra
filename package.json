@@ -16,6 +16,7 @@
     "preview": "bun --filter app preview"
   },
   "dependencies": {
+    "@jl-org/tool": "^3.4.6",
     "clsx": "^2.1.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

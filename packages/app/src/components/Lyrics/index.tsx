@@ -1,11 +1,43 @@
-import { cn } from 'utils'
+import { cn, formatDuration } from 'utils'
 import { memo, useLayoutEffect, useRef } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
+import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
 import { Music2 } from 'lucide-react'
-import { currentTrack } from '@/stores/player'
+import { currentTrack, seekTo } from '@/stores/player'
 import { parsedLyrics, activeLyricIndex } from '@/stores/lyrics'
+import { useInsertStyle } from 'hooks'
 import type { LyricLine } from '@/utils/lrc'
+
+const LYRIC_ANCHOR_CSS = `
+  .lyric-row:hover {
+    anchor-name: --current-lyric;
+  }
+
+  .lyric-time-badge {
+    position: fixed;
+    position-anchor: --current-lyric;
+    top: anchor(center);
+    transform: translateY(-50%);
+    right: 1.25rem;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+    color: color-mix(in srgb, var(--color-primary) 80%, transparent);
+    transition: opacity 300ms ease-in-out, top 120ms ease-out;
+    z-index: 10;
+  }
+
+  .lyrics-container:has(.lyric-row:hover) .lyric-time-badge {
+    opacity: 1;
+  }
+`
 
 // ─── Public panel ─────────────────────────────────────────────────────────────
 
@@ -51,33 +83,44 @@ LyricsPanel.displayName = 'LyricsPanel'
 
 export const LrcView = memo<{ lines: LyricLine[] }>(({ lines }) => {
   useSignals()
+  useInsertStyle(LYRIC_ANCHOR_CSS)
 
   const activeIdx = activeLyricIndex.value
   const lineRefs = useRef<(HTMLElement | null)[]>([])
+  const hoveredTime = useSignal<number | null>(null)
 
-  // Scroll active line into view whenever it changes
   useLayoutEffect(() => {
     const el = lineRefs.current[activeIdx]
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [activeIdx])
 
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="lyrics-container flex flex-col gap-0.5">
       {lines.map((line, i) => (
-        <p
+        <div
           key={i}
-          ref={el => { lineRefs.current[i] = el }}
-          className={cn(
-            'py-1.5 leading-relaxed cursor-default break-words text-center',
-            'transition-all duration-[600ms] ease-out origin-center',
-            i === activeIdx
-              ? 'text-[16px] font-semibold text-primary scale-[1.06]'
-              : 'text-[14px] text-secondary scale-100',
-          )}
+          ref={el => { lineRefs.current[i] = el as HTMLElement | null }}
+          onClick={() => seekTo(line.time)}
+          onMouseEnter={() => { hoveredTime.value = line.time }}
+          className="lyric-row flex items-center cursor-pointer"
         >
-          {line.text}
-        </p>
+          <p
+            className={cn(
+              'flex-1 py-1.5 leading-relaxed break-words text-center',
+              'transition-all duration-[600ms] ease-out origin-center',
+              i === activeIdx
+                ? 'text-[16px] font-semibold text-primary scale-[1.06]'
+                : 'text-[14px] text-secondary scale-100 hover:text-primary/70',
+            )}
+          >
+            {line.text}
+          </p>
+        </div>
       ))}
+
+      <span className="lyric-time-badge">
+        {hoveredTime.value !== null ? formatDuration(hoveredTime.value) : ''}
+      </span>
     </div>
   )
 })
