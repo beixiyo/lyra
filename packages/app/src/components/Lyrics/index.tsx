@@ -49,7 +49,7 @@ LyricsPanel.displayName = 'LyricsPanel'
 
 // ─── LRC synced view ──────────────────────────────────────────────────────────
 
-const LrcView = memo<{ lines: LyricLine[] }>(({ lines }) => {
+export const LrcView = memo<{ lines: LyricLine[] }>(({ lines }) => {
   useSignals()
 
   const activeIdx = activeLyricIndex.value
@@ -62,16 +62,17 @@ const LrcView = memo<{ lines: LyricLine[] }>(({ lines }) => {
   }, [activeIdx])
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-0.5">
       {lines.map((line, i) => (
         <p
           key={i}
           ref={el => { lineRefs.current[i] = el }}
           className={cn(
-            'text-[15px] leading-relaxed py-1.5 transition-all duration-300 cursor-default',
+            'py-1.5 leading-relaxed cursor-default break-words text-center',
+            'transition-all duration-[600ms] ease-out origin-center',
             i === activeIdx
-              ? 'text-primary font-semibold scale-[1.02] origin-left'
-              : 'text-muted opacity-50',
+              ? 'text-[16px] font-semibold text-primary scale-[1.06]'
+              : 'text-[14px] text-secondary scale-100',
           )}
         >
           {line.text}
@@ -85,7 +86,7 @@ LrcView.displayName = 'LrcView'
 
 // ─── Plain text view ──────────────────────────────────────────────────────────
 
-const PlainView = memo<{ text: string }>(({ text }) => (
+export const PlainView = memo<{ text: string }>(({ text }) => (
   <p className="text-[14px] leading-relaxed text-secondary whitespace-pre-wrap">
     {text}
   </p>
@@ -95,7 +96,7 @@ PlainView.displayName = 'PlainView'
 
 // ─── Empty state ─────────────────────────────────────────────────────────────
 
-const NoLyrics = memo(() => {
+export const NoLyrics = memo(() => {
   const { t } = useTranslation()
 
   return (

@@ -2,11 +2,22 @@ import { signal, computed } from '@preact/signals-react'
 import { currentTrack, currentTime } from './player'
 import { parseLyrics, getActiveLyricIndex } from '@/utils/lrc'
 
-/** Whether the lyrics panel is open */
+/** Whether the legacy lyrics side panel is open (keybinding still works) */
 export const showLyrics = signal(false)
 
 export function toggleLyrics() {
   showLyrics.value = !showLyrics.value
+}
+
+/** Whether the full-screen player detail overlay is open */
+export const showPlayerDetail = signal(false)
+
+export function openPlayerDetail() {
+  showPlayerDetail.value = true
+}
+
+export function closePlayerDetail() {
+  showPlayerDetail.value = false
 }
 
 /**

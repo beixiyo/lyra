@@ -3,12 +3,10 @@ import { formatDuration } from 'utils'
 import { memo, useRef } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
-import { useTranslation } from 'react-i18next'
 import {
   Play, Pause, SkipBack, SkipForward,
   Volume2, VolumeX,
   Shuffle, Repeat, Repeat1,
-  Mic2,
 } from 'lucide-react'
 import {
   currentTrack, isPlaying, currentTime, duration, volume, progress,
@@ -16,7 +14,7 @@ import {
   togglePlay, nextTrack, prevTrack, seekTo, setVolume,
   toggleShuffle, cycleRepeat,
 } from '@/stores/player'
-import { showLyrics, toggleLyrics } from '@/stores/lyrics'
+import { openPlayerDetail } from '@/stores/lyrics'
 import { CoverArt } from '../CoverArt'
 
 // ─── Root bar ─────────────────────────────────────────────────────────────────
@@ -53,11 +51,14 @@ const TrackInfo = memo(() => {
   if (!track) return null
 
   return (
-    <div className="flex items-center gap-3 w-56 min-w-0 shrink-0">
+    <div
+      onClick={openPlayerDetail}
+      className="flex items-center gap-3 w-56 min-w-0 shrink-0 cursor-pointer group"
+    >
       <CoverArt filePath={track.filePath} size={48} className="rounded-md" />
 
       <div className="min-w-0">
-        <p className="text-[13px] font-medium truncate text-primary">
+        <p className="text-[13px] font-medium truncate text-primary group-hover:text-accent transition-colors">
           {track.title}
         </p>
         <p className="text-[12px] text-muted truncate mt-0.5">
@@ -72,11 +73,11 @@ TrackInfo.displayName = 'TrackInfo'
 
 // ─── Centre playback controls ─────────────────────────────────────────────────
 
-const PlaybackControls = memo(() => {
+export const PlaybackControls = memo(() => {
   useSignals()
 
   return (
-    <div className="flex-1 flex flex-col items-center gap-1.5 max-w-2xl">
+    <div className="w-full max-w-2xl flex flex-col items-center gap-1.5">
 
       <div className="flex items-center gap-5">
         {/* Shuffle */}
@@ -211,33 +212,17 @@ ProgressBar.displayName = 'ProgressBar'
 
 // ─── Right controls (volume + lyrics) ────────────────────────────────────────
 
-const RightControls = memo(() => {
-  useSignals()
-  const { t } = useTranslation()
-
-  return (
-    <div className="flex items-center gap-3 shrink-0">
-      <VolumeControl />
-
-      <button
-        onClick={toggleLyrics}
-        title={t('lyrics.title')}
-        className={cn(
-          'transition-colors',
-          showLyrics.value ? 'text-accent' : 'text-muted hover:text-secondary',
-        )}
-      >
-        <Mic2 className="w-[14px] h-[14px]" />
-      </button>
-    </div>
-  )
-})
+const RightControls = memo(() => (
+  <div className="flex items-center gap-3 shrink-0">
+    <VolumeControl />
+  </div>
+))
 
 RightControls.displayName = 'RightControls'
 
 // ─── Volume control ───────────────────────────────────────────────────────────
 
-const VolumeControl = memo(() => {
+export const VolumeControl = memo(() => {
   useSignals()
 
   const barRef = useRef<HTMLDivElement>(null)

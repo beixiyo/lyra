@@ -9,16 +9,15 @@ import {
   scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
 import { getLastPlayed, restoreTrack } from '@/stores/player'
-import { showLyrics } from '@/stores/lyrics'
 import { initKeybindings } from '@/stores/keybindings'
 import { Sidebar } from '@/components/Sidebar'
 import { Player } from '@/components/Player'
+import { PlayerDetail } from '@/components/PlayerDetail'
 import { ArtistsGrid } from '@/components/ArtistsGrid'
 import { AlbumsGrid } from '@/components/AlbumsGrid'
 import { TrackList } from '@/components/TrackList'
 import { SearchBar } from '@/components/SearchBar'
 import { Settings } from '@/components/Settings'
-import { LyricsPanel } from '@/components/Lyrics'
 
 export const App = memo(() => {
   useSignals()
@@ -45,26 +44,21 @@ export const App = memo(() => {
     <main className="flex h-screen bg-bg text-primary overflow-hidden select-none">
       <Sidebar />
 
-      <div className="flex-1 flex min-w-0">
-
-        {/* Main content column */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {tracks.value.length > 0 && (
-            <div className="px-8 pt-5 shrink-0 flex justify-end">
-              <SearchBar className="w-64" />
-            </div>
-          )}
-
-          <div className="flex-1 min-h-0 overflow-y-auto px-8 py-5 custom-scrollbar">
-            <MainContent />
+      <div className="flex-1 flex flex-col min-w-0">
+        {tracks.value.length > 0 && (
+          <div className="px-8 pt-5 shrink-0 flex justify-end">
+            <SearchBar className="w-64" />
           </div>
+        )}
 
-          <Player />
+        <div className="flex-1 min-h-0 overflow-y-auto px-8 py-5 custom-scrollbar">
+          <MainContent />
         </div>
 
-        {/* Lyrics side panel — conditionally shown */}
-        {showLyrics.value && <LyricsPanel />}
+        <Player />
       </div>
+
+      <PlayerDetail />
     </main>
   )
 })
