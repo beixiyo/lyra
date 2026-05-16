@@ -1,9 +1,9 @@
 import { cn } from 'utils'
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { ChevronDown, Music2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { currentTrack, getCoverUrl } from '@/stores/player'
+import { currentTrack, getCoverUrl, isPlaying } from '@/stores/player'
 import { showPlayerDetail, closePlayerDetail, parsedLyrics } from '@/stores/lyrics'
 import { PlaybackControls, VolumeControl } from '../Player'
 import { LrcView, PlainView } from '../Lyrics'
@@ -71,17 +71,26 @@ PlayerDetail.displayName = 'PlayerDetail'
 
 // ─── Left: cover + info + controls ───────────────────────────────────────────
 
-const TrackSection = memo<{ track: ReturnType<typeof currentTrack.peek> }>(({ track }) => (
+const TrackSection = memo<{ track: ReturnType<typeof currentTrack.peek> }>(({ track }) => {
+  useSignals()
+  const [hovered, setHovered] = useState(false)
+
+  return (
   <div className="flex-1 flex flex-col items-center justify-center gap-8 max-w-xs mx-auto w-full">
-    <div className="w-full rounded-2xl shadow-2xl overflow-hidden">
+    <div
+      className="w-full aspect-square rounded-full shadow-2xl overflow-hidden animate-[spin_30s_linear_infinite]"
+      style={{ animationPlayState: isPlaying.value && !hovered ? 'running' : 'paused' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       {track
         ? <img
             src={getCoverUrl(track.filePath)}
             alt="Cover"
-            className="w-full aspect-square object-cover"
+            className="w-full h-full object-cover"
             onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
-        : <div className="w-full aspect-square bg-raised/80 flex items-center justify-center">
+        : <div className="w-full h-full bg-raised/80 flex items-center justify-center">
             <Music2 className="w-16 h-16 text-muted opacity-30" />
           </div>
       }
@@ -109,7 +118,8 @@ const TrackSection = memo<{ track: ReturnType<typeof currentTrack.peek> }>(({ tr
       </div>
     </div>
   </div>
-))
+  )
+})
 
 TrackSection.displayName = 'TrackSection'
 
