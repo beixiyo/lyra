@@ -14,5 +14,8 @@ export default defineConfig({
       formats: ['es', 'cjs'],
       fileName: 'index',
     },
+    rolldownOptions: {
+      external: ['react', 'react-dom', 'react-dom/client', 'react/jsx-runtime'],
+    },
   },
 })

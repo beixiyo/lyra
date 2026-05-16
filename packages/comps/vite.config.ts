@@ -21,7 +21,21 @@ export default defineConfig({
       fileName: 'index',
     },
     rolldownOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', 'utils', 'hooks'],
+      external: [
+        'react',
+        'react-dom',
+        'react-dom/client',
+        'react/jsx-runtime',
+        'utils',
+        'hooks',
+        'motion',
+        'motion/react',
+        '@jl-org/tool',
+        '@jl-org/ts-tool',
+        'class-variance-authority',
+        'clsx',
+        'lucide-react',
+      ],
     },
   },
 })

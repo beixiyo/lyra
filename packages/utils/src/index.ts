@@ -15,3 +15,6 @@ export {
 export { formatBytes, formatDuration, formatDate } from './format'
 
 export { debounce, throttle } from './debounce'
+
+export { getCompKey, filterValidComps, injectReactApp } from './reactTool'
+export type { FilterValidCompsOptions } from './reactTool'
