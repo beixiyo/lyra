@@ -1,5 +1,6 @@
 import { cn } from 'utils'
 import { memo, useRef } from 'react'
+import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
 import { useTranslation } from 'react-i18next'
@@ -22,7 +23,10 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
   })
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: -6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 28, delay: 0.2 }}
       className={cn('relative flex items-center', className)}
       style={style}
     >
@@ -51,7 +55,7 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
           <X className="w-3.5 h-3.5" />
         </button>
       )}
-    </div>
+    </motion.div>
   )
 })
 

@@ -1,6 +1,7 @@
 import { cn } from 'utils'
 import { formatDuration } from 'utils'
 import { memo } from 'react'
+import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
@@ -24,12 +25,20 @@ export const TrackList = memo<TrackListProps>(({
   })
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.25 }}
       className={cn('flex flex-col', className)}
       style={style}
     >
       {(title || showBack) && (
-        <div className="flex items-center gap-3 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+          className="flex items-center gap-3 mb-6"
+        >
           {showBack && (
             <button
               onClick={onBack}
@@ -44,7 +53,7 @@ export const TrackList = memo<TrackListProps>(({
           {title && (
             <h1 className="text-[28px] font-bold tracking-tight">{title}</h1>
           )}
-        </div>
+        </motion.div>
       )}
 
       <div className="flex items-center gap-4 px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted border-b border-line/[0.06]">
@@ -55,7 +64,15 @@ export const TrackList = memo<TrackListProps>(({
         <span className="w-16 text-right">{t('trackList.colDuration')}</span>
       </div>
 
-      <div className="flex flex-col">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.02, delayChildren: 0.08 } },
+        }}
+        className="flex flex-col"
+      >
         {tracks.map((track, i) => (
           <TrackItem
             key={track.filePath}
@@ -66,8 +83,8 @@ export const TrackList = memo<TrackListProps>(({
             onPlay={handlePlay}
           />
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 })
 
@@ -83,7 +100,12 @@ const TrackItem = memo<TrackItemProps>(({
   const handleClick = useLatestCallback(() => onPlay(track, index))
 
   return (
-    <button
+    <motion.button
+      variants={{
+        hidden: { opacity: 0, x: -8 },
+        visible: { opacity: 1, x: 0 },
+      }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       onClick={handleClick}
       className={cn(
         'flex items-center gap-4 px-4 py-2.5 text-sm transition-colors text-left',
@@ -121,7 +143,7 @@ const TrackItem = memo<TrackItemProps>(({
       <span className="w-16 text-right tabular-nums text-[13px] text-muted">
         {track.duration ? formatDuration(track.duration) : '--:--'}
       </span>
-    </button>
+    </motion.button>
   )
 })
 

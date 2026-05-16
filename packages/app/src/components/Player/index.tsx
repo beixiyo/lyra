@@ -1,6 +1,7 @@
 import { cn } from 'utils'
 import { formatDuration } from 'utils'
 import { memo, useRef } from 'react'
+import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
 import {
@@ -25,7 +26,10 @@ export const Player = memo<PlayerProps>(({ style, className }) => {
   if (!currentTrack.value) return null
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 280, damping: 24, mass: 0.9 }}
       className={cn(
         'h-20 flex items-center px-5 gap-6 shrink-0',
         'bg-surface/80 backdrop-blur-xl border-t border-line/[0.06]',
@@ -36,7 +40,7 @@ export const Player = memo<PlayerProps>(({ style, className }) => {
       <TrackInfo />
       <PlaybackControls />
       <RightControls />
-    </div>
+    </motion.div>
   )
 })
 
@@ -98,7 +102,7 @@ export const PlaybackControls = memo(() => {
           onClick={togglePlay}
           className={cn(
             'w-8 h-8 flex items-center justify-center rounded-full',
-            'bg-primary text-bg hover:scale-105 transition-transform',
+            'bg-primary text-bg',
           )}
         >
           {isPlaying.value

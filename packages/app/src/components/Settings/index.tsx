@@ -1,5 +1,6 @@
 import { cn } from 'utils'
 import { memo } from 'react'
+import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
@@ -54,15 +55,31 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
   })
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
       className={cn('flex flex-col max-w-lg pb-12', className)}
       style={style}
     >
-      <h1 className="text-[28px] font-bold tracking-tight mb-8">
+      <motion.h1
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="text-[28px] font-bold tracking-tight mb-8"
+      >
         {t('settings.title')}
-      </h1>
+      </motion.h1>
 
-      <div className="space-y-8">
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+        }}
+        className="space-y-8"
+      >
 
         {/* Language */}
         <SettingSection label={t('settings.language')}>
@@ -178,8 +195,8 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
           <span className="text-[13px] text-muted">0.1.0</span>
         </SettingSection>
 
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 })
 
@@ -297,12 +314,19 @@ ThemeDot.displayName = 'ThemeDot'
 // ─── Setting section wrapper ──────────────────────────────────────────────────
 
 const SettingSection = memo<SettingSectionProps>(({ label, children }) => (
-  <div className="flex flex-col gap-3">
+  <motion.div
+    variants={{
+      hidden: { opacity: 0, y: 12 },
+      visible: { opacity: 1, y: 0 },
+    }}
+    transition={{ type: 'spring', stiffness: 320, damping: 26 }}
+    className="flex flex-col gap-3"
+  >
     <label className="text-[13px] font-medium text-secondary">
       {label}
     </label>
     {children}
-  </div>
+  </motion.div>
 ))
 
 SettingSection.displayName = 'SettingSection'

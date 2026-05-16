@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useTranslation } from 'react-i18next'
 import { onMounted } from 'hooks'
@@ -45,7 +46,12 @@ export const App = memo(() => {
     <main className="flex h-screen bg-bg text-primary overflow-hidden select-none">
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35, delay: 0.1 }}
+        className="flex-1 flex flex-col min-w-0"
+      >
         {tracks.value.length > 0 && (
           <div className="px-8 pt-5 shrink-0 flex justify-end">
             <SearchBar className="w-64" />
@@ -57,7 +63,7 @@ export const App = memo(() => {
         </div>
 
         <Player />
-      </div>
+      </motion.div>
 
       <PlayerDetail />
     </main>
@@ -72,47 +78,70 @@ const MainContent = memo(() => {
 
   if (musicDirs.value.length === 0) {
     return (
-      <button
+      <motion.button
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25, delay: 0.15 }}
         onClick={pickAndAddDirs}
         className="flex flex-col items-center justify-center h-full gap-3 text-secondary hover:text-primary transition-colors w-full"
       >
         <FolderOpen className="w-10 h-10 text-muted" />
         <p className="text-sm">{t('app.pickMusicDir')}</p>
-      </button>
+      </motion.button>
     )
   }
 
   if (isScanning.value) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-secondary">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col items-center justify-center h-full gap-3 text-secondary"
+      >
         <Loader2 className="w-6 h-6 animate-spin" />
         <p className="text-sm">{t('app.scanning')}</p>
-      </div>
+      </motion.div>
     )
   }
 
   if (scanError.value) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-2 text-secondary">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+        className="flex flex-col items-center justify-center h-full gap-2 text-secondary"
+      >
         <p className="text-sm">{t('app.scanFailed')}</p>
         <p className="text-xs text-muted">{scanError.value}</p>
-      </div>
+      </motion.div>
     )
   }
 
   if (tracks.value.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted text-sm">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="flex items-center justify-center h-full text-muted text-sm"
+      >
         {t('app.noMusic')}
-      </div>
+      </motion.div>
     )
   }
 
   if (searchQuery.value && filteredTracks.value.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted text-sm">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className="flex items-center justify-center h-full text-muted text-sm"
+      >
         {t('app.noSearchResults', { query: searchQuery.value })}
-      </div>
+      </motion.div>
     )
   }
 
