@@ -43,7 +43,12 @@ export const PlayerDetail = memo(() => {
       <div className="relative z-10 h-14 flex items-center px-6 shrink-0">
         <button
           onClick={closePlayerDetail}
-          className="text-muted hover:text-primary transition-colors p-1 -ml-1 rounded-lg"
+          className={cn(
+            'flex items-center justify-center w-8 h-8 rounded-xl',
+            'bg-overlay/[0.08] hover:bg-overlay/[0.15]',
+            'text-primary/70 hover:text-primary',
+            'transition-colors backdrop-blur-sm',
+          )}
           aria-label="Close"
         >
           <ChevronDown className="w-5 h-5" />
@@ -82,7 +87,7 @@ const TrackSection = memo<{ track: ReturnType<typeof currentTrack.peek> }>(({ tr
       }
     </div>
 
-    <div className="w-full text-center space-y-1">
+    <div className="w-full text-center space-y-1" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
       <h2 className="text-[19px] font-semibold text-primary truncate leading-snug">
         {track?.title ?? '—'}
       </h2>
