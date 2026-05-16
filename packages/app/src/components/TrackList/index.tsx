@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
 import { playTrack, currentTrack, isPlaying } from '@/stores/player'
+import { CoverArt } from '../CoverArt'
 import type { Track } from '@/types/music'
 
 export const TrackList = memo<TrackListProps>(({
@@ -48,6 +49,7 @@ export const TrackList = memo<TrackListProps>(({
 
       <div className="flex items-center gap-4 px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted border-b border-line/[0.06]">
         <span className="w-8 text-center">#</span>
+        <span className="w-10 shrink-0" />
         <span className="flex-1">{t('trackList.colTitle')}</span>
         <span className="w-44 hidden sm:block">{t('trackList.colAlbum')}</span>
         <span className="w-16 text-right">{t('trackList.colDuration')}</span>
@@ -91,12 +93,19 @@ const TrackItem = memo<TrackItemProps>(({
     >
       <span
         className={cn(
-          'w-8 text-center tabular-nums text-[13px]',
+          'w-8 text-center tabular-nums text-[13px] shrink-0',
           isActive ? 'text-accent' : 'text-muted',
         )}
       >
         {isCurrentPlaying ? '♫' : index + 1}
       </span>
+
+      <CoverArt
+        filePath={track.filePath}
+        size={40}
+        className="rounded-sm"
+        iconScale={0.35}
+      />
 
       <div className="flex-1 min-w-0">
         <p className={cn('truncate text-[13px]', isActive ? 'text-accent' : 'text-primary')}>
