@@ -181,7 +181,7 @@ const ProgressBar = memo(() => {
 
   return (
     <div className="flex items-center gap-2.5 w-full">
-      <span className="text-[11px] tabular-nums text-muted w-10 text-right select-none">
+      <span className="text-[11px] tabular-nums text-secondary w-10 text-right select-none">
         {formatDuration(currentTime.value)}
       </span>
 
@@ -201,7 +201,7 @@ const ProgressBar = memo(() => {
         </div>
       </div>
 
-      <span className="text-[11px] tabular-nums text-muted w-10 select-none">
+      <span className="text-[11px] tabular-nums text-secondary w-10 select-none">
         {duration.value > 0 ? formatDuration(duration.value) : '--:--'}
       </span>
     </div>

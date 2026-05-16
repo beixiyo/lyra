@@ -44,9 +44,9 @@ export const PlayerDetail = memo(() => {
         <button
           onClick={closePlayerDetail}
           className={cn(
-            'flex items-center justify-center w-8 h-8 rounded-xl',
-            'bg-overlay/[0.08] hover:bg-overlay/[0.15]',
-            'text-primary/70 hover:text-primary',
+            'flex items-center justify-center w-8 h-8 rounded-full',
+            'bg-overlay/20 hover:bg-overlay/30',
+            'text-primary',
             'transition-colors backdrop-blur-sm',
           )}
           aria-label="Close"
@@ -87,13 +87,16 @@ const TrackSection = memo<{ track: ReturnType<typeof currentTrack.peek> }>(({ tr
       }
     </div>
 
-    <div className="w-full text-center space-y-1" style={{ textShadow: '0 1px 8px rgba(0,0,0,0.8)' }}>
+    <div
+      className="w-full text-center space-y-1"
+      style={{ textShadow: '0 1px 4px rgba(0,0,0,0.15), 0 0 12px rgba(0,0,0,0.1)' }}
+    >
       <h2 className="text-[19px] font-semibold text-primary truncate leading-snug">
         {track?.title ?? '—'}
       </h2>
       <p className="text-[14px] text-secondary truncate">{track?.artist}</p>
       {track?.album && (
-        <p className="text-[12px] text-muted truncate">{track.album}</p>
+        <p className="text-[12px] text-secondary truncate">{track.album}</p>
       )}
     </div>
 
