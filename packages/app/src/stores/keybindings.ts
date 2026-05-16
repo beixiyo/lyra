@@ -282,6 +282,13 @@ function handleKeydown(e: KeyboardEvent) {
     }
   }
 
+  // Space 固定触发 togglePlay，不进 Settings、不可改绑
+  if (e.code === 'Space' && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+    e.preventDefault()
+    dispatch('togglePlay')
+    return
+  }
+
   const bindings = getEffectiveBindings()
 
   for (const [actionId, binding] of Object.entries(bindings)) {
