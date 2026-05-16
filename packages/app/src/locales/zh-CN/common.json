@@ -59,6 +59,10 @@
     "toggleMute": "静音",
     "toggleShuffle": "随机播放",
     "cycleRepeat": "切换循环模式",
-    "toggleLyrics": "显示 / 隐藏歌词"
+    "toggleLyrics": "显示 / 隐藏歌词",
+    "navBack": "返回 / 关闭",
+    "navArtists": "跳转到艺术家",
+    "navAlbums": "跳转到专辑",
+    "navSongs": "跳转到所有歌曲"
   }
 }

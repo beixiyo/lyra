@@ -59,6 +59,10 @@
     "toggleMute": "Toggle mute",
     "toggleShuffle": "Toggle shuffle",
     "cycleRepeat": "Cycle repeat mode",
-    "toggleLyrics": "Show / hide lyrics"
+    "toggleLyrics": "Show / hide lyrics",
+    "navBack": "Go back / Close",
+    "navArtists": "Go to Artists",
+    "navAlbums": "Go to Albums",
+    "navSongs": "Go to All Songs"
   }
 }

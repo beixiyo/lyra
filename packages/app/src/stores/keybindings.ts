@@ -3,7 +3,8 @@ import {
   setVolume, volume, seekTo, currentTime, duration,
   toggleShuffle, cycleRepeat,
 } from './player'
-import { toggleLyrics } from './lyrics'
+import { toggleLyrics, showPlayerDetail, closePlayerDetail, showLyrics } from './lyrics'
+import { currentView, goBack } from './library'
 
 const SEEK_STEP_SEC = 5
 const VOLUME_STEP = 0.05
@@ -21,6 +22,10 @@ export type ActionId =
   | 'toggleShuffle'
   | 'cycleRepeat'
   | 'toggleLyrics'
+  | 'navBack'
+  | 'navArtists'
+  | 'navAlbums'
+  | 'navSongs'
 
 /**
  * Default keyboard bindings.
@@ -38,6 +43,10 @@ export const DEFAULT_BINDINGS: Record<ActionId, string> = {
   toggleShuffle: 'KeyS',
   cycleRepeat:   'KeyR',
   toggleLyrics:  'KeyU',
+  navBack:       'Escape',
+  navArtists:    'Digit1',
+  navAlbums:     'Digit2',
+  navSongs:      'Digit3',
 }
 
 /** Human-readable label for display in Settings */
@@ -53,6 +62,10 @@ export const ACTION_LABELS: Record<ActionId, string> = {
   toggleShuffle: 'keybindings.toggleShuffle',
   cycleRepeat:   'keybindings.cycleRepeat',
   toggleLyrics:  'keybindings.toggleLyrics',
+  navBack:       'keybindings.navBack',
+  navArtists:    'keybindings.navArtists',
+  navAlbums:     'keybindings.navAlbums',
+  navSongs:      'keybindings.navSongs',
 }
 
 /** Human-readable key name for a KeyboardEvent.code */
@@ -63,6 +76,7 @@ export function codeToLabel(code: string): string {
     ArrowRight: '→ Right',
     ArrowUp: '↑ Up',
     ArrowDown: '↓ Down',
+    Escape: 'Esc',
   }
   if (code in map) return map[code]
   // e.g. 'KeyL' → 'L', 'Digit1' → '1'
@@ -97,6 +111,16 @@ function dispatch(action: ActionId) {
       }
       break
     }
+    case 'navBack': {
+      if (showPlayerDetail.peek()) { closePlayerDetail(); break }
+      if (showLyrics.peek()) { toggleLyrics(); break }
+      const view = currentView.peek()
+      if (view === 'artist-detail' || view === 'album-detail') goBack()
+      break
+    }
+    case 'navArtists': currentView.value = 'artists'; break
+    case 'navAlbums':  currentView.value = 'albums'; break
+    case 'navSongs':   currentView.value = 'songs'; break
   }
 }
 
