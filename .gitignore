@@ -12,9 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Bun
-bun.lock
-
 # Electrobun
 build/
 artifacts/
@@ -37,5 +34,3 @@ vite.config.js
 *.sln
 *.sw?
 
-# Handoff
-handoff.md

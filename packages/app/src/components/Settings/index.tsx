@@ -5,14 +5,14 @@ import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
 import { useLatestCallback } from 'hooks'
 import { FolderPlus, X, RotateCcw } from 'lucide-react'
-import { Select, Switch } from 'comps'
+import { Select, Switch, Tooltip } from 'comps'
 import { musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
 import { supportedLanguages } from '@/locales'
 import { THEMES, THEME_IDS, currentTheme, dynamicAccent, applyTheme } from '@/stores/theme'
 import {
   DEFAULT_BINDINGS, ACTION_LABELS, codeToLabel,
-  customBindings, resetBinding,
-  globalShortcutsEnabled, toggleGlobalShortcuts,
+  customBindings, resetBinding, removeBinding,
+  globalShortcutActions, toggleActionGlobal,
 } from '@/stores/keybindings'
 import { useBindingCapture } from './useBindingCapture'
 import type { ThemeId } from '@/stores/theme'
@@ -37,17 +37,20 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
     dynamicAccent.value = checked
   })
 
-  const handleGlobalShortcuts = useLatestCallback((checked: boolean) => {
-    if (checked !== globalShortcutsEnabled.value)
-      toggleGlobalShortcuts()
-  })
-
   const handleStartListening = useLatestCallback((action: ActionId) => {
     listening.value = action
   })
 
   const handleReset = useLatestCallback((action: ActionId) => {
     resetBinding(action)
+  })
+
+  const handleRemove = useLatestCallback((action: ActionId) => {
+    removeBinding(action)
+  })
+
+  const handleToggleGlobal = useLatestCallback((action: ActionId) => {
+    toggleActionGlobal(action)
   })
 
   return (
@@ -77,7 +80,6 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
         <SettingSection label={t('settings.theme')}>
           <div className="flex flex-col gap-3">
 
-            {/* Theme presets */}
             <div className="flex gap-2 flex-wrap">
               {THEME_IDS.map(id => (
                 <button
@@ -96,7 +98,6 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
               ))}
             </div>
 
-            {/* Dynamic accent toggle */}
             <label className="flex items-center gap-3 cursor-pointer group">
               <Switch
                 checked={dynamicAccent.value}
@@ -146,39 +147,26 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
         {/* Keyboard shortcuts */}
         <SettingSection label={t('settings.keybindings')}>
-          <div className="flex flex-col gap-3">
-
-            {/* Global shortcuts toggle */}
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <Switch
-                checked={globalShortcutsEnabled.value}
-                onChange={handleGlobalShortcuts}
-              />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[13px] text-secondary group-hover:text-primary transition-colors">
-                  {t('settings.globalShortcuts')}
-                </span>
-                <span className="text-[11px] text-muted">
-                  {t('settings.globalShortcutsDesc')}
-                </span>
-              </div>
-            </label>
-
-          </div>
-
           <div className="flex flex-col gap-0.5">
             {(Object.keys(DEFAULT_BINDINGS) as ActionId[]).map(action => {
               const custom = customBindings.value[action]
               const effectiveCode = custom ?? DEFAULT_BINDINGS[action]
+              const isUnbound = effectiveCode === ''
+
               return (
                 <KeybindingRow
                   key={action}
                   label={t(ACTION_LABELS[action])}
                   code={effectiveCode}
                   isCustom={custom !== undefined}
+                  isUnbound={isUnbound}
                   isListening={listening.value === action}
+                  isGlobal={!!globalShortcutActions.value[action]}
+                  globalTip={t('keybindings.globalShortcutTip')}
                   onStartListening={() => handleStartListening(action)}
                   onReset={() => handleReset(action)}
+                  onRemove={() => handleRemove(action)}
+                  onToggleGlobal={() => handleToggleGlobal(action)}
                 />
               )
             })}
@@ -203,57 +191,93 @@ const KeybindingRow = memo<KeybindingRowProps>(({
   label,
   code,
   isCustom,
+  isUnbound,
   isListening,
+  isGlobal,
+  globalTip,
   onStartListening,
   onReset,
+  onRemove,
+  onToggleGlobal,
 }) => {
   const { t } = useTranslation()
 
   return (
-    <button
-      onClick={onStartListening}
+    <div
       className={cn(
-        'flex items-center justify-between w-full px-3 py-2 rounded-lg transition-colors text-left',
+        'flex items-center w-full px-3 py-2 rounded-lg transition-colors',
         isListening
           ? 'bg-accent/[0.08] ring-1 ring-inset ring-accent/[0.25]'
           : 'hover:bg-overlay/[0.04]',
       )}
     >
-      <span className="text-[13px] text-secondary">{label}</span>
+      {/* Left: label + key badge — clickable for capture */}
+      <button
+        onClick={onStartListening}
+        className="flex-1 flex items-center justify-between text-left min-w-0 mr-3"
+      >
+        <span className="text-[13px] text-secondary truncate">{label}</span>
 
-      <div className="flex items-center gap-2">
         {isListening
           ? (
-            <span className="text-[12px] text-accent italic">
+            <span className="text-[12px] text-accent italic shrink-0 ml-2">
               {t('keybindings.pressAnyKey')}
             </span>
           )
-          : (
-            <>
+          : isUnbound
+            ? (
+              <span className="text-[12px] text-muted italic shrink-0 ml-2">
+                {t('keybindings.unbound')}
+              </span>
+            )
+            : (
               <kbd className={cn(
-                'text-[12px] px-2 py-0.5 rounded font-mono border',
+                'text-[12px] px-2 py-0.5 rounded font-mono border shrink-0 ml-2',
                 isCustom
                   ? 'text-accent bg-accent/[0.08] border-accent/[0.25]'
                   : 'text-muted bg-overlay/[0.06] border-line/[0.06]',
               )}>
                 {codeToLabel(code)}
               </kbd>
-
-              {isCustom && (
-                <span
-                  role="button"
-                  onClick={(e) => { e.stopPropagation(); onReset() }}
-                  className="text-muted hover:text-primary transition-colors"
-                  title={t('keybindings.resetToDefault')}
-                >
-                  <RotateCcw className="w-3 h-3" />
-                </span>
-              )}
-            </>
-          )
+            )
         }
-      </div>
-    </button>
+      </button>
+
+      {/* Right: controls */}
+      {!isListening && (
+        <div className="flex items-center gap-1.5 shrink-0">
+
+          <Tooltip content={globalTip} placement="top">
+            <Switch
+              size="sm"
+              checked={isGlobal}
+              onChange={onToggleGlobal}
+              disabled={isUnbound}
+            />
+          </Tooltip>
+
+          {!isUnbound && (
+            <button
+              onClick={onRemove}
+              className="p-0.5 text-muted hover:text-primary transition-colors"
+              title={t('keybindings.removeBinding')}
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+
+          {isCustom && (
+            <button
+              onClick={onReset}
+              className="p-0.5 text-muted hover:text-primary transition-colors"
+              title={t('keybindings.resetToDefault')}
+            >
+              <RotateCcw className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   )
 })
 
@@ -295,7 +319,12 @@ type KeybindingRowProps = {
   label: string
   code: string
   isCustom: boolean
+  isUnbound: boolean
   isListening: boolean
+  isGlobal: boolean
+  globalTip: string
   onStartListening: () => void
   onReset: () => void
+  onRemove: () => void
+  onToggleGlobal: () => void
 }

@@ -10,8 +10,8 @@ import { persistedSignal } from './persist'
 const SEEK_STEP_SEC = 5
 const DETAIL_SEEK_STEP = 3
 const VOLUME_STEP = 0.05
+const POLL_INTERVAL_MS = 300
 
-/** All bindable action identifiers */
 export type ActionId =
   | 'togglePlay'
   | 'nextTrack'
@@ -29,14 +29,8 @@ export type ActionId =
   | 'navAlbums'
   | 'navSongs'
 
-/**
- * Default keyboard bindings.
- * Values are KeyboardEvent.code strings (layout-independent).
- * Bindings containing Ctrl+Shift+Alt are treated as "global" and respect
- * the globalShortcutsEnabled toggle.
- */
 export const DEFAULT_BINDINGS: Record<ActionId, string> = {
-  togglePlay:    'Space',
+  togglePlay:    'Ctrl+Shift+Alt+KeyP',
   nextTrack:     'Ctrl+Shift+Alt+ArrowRight',
   prevTrack:     'Ctrl+Shift+Alt+ArrowLeft',
   volumeUp:      'Ctrl+Shift+Alt+ArrowUp',
@@ -53,13 +47,6 @@ export const DEFAULT_BINDINGS: Record<ActionId, string> = {
   navSongs:      'Digit3',
 }
 
-/**
- * Fixed global shortcut for toggling playback — not user-configurable,
- * active only when globalShortcutsEnabled is true.
- */
-const GLOBAL_TOGGLE_PLAY_BINDING = 'Ctrl+Shift+Alt+KeyP'
-
-/** Human-readable label for display in Settings */
 export const ACTION_LABELS: Record<ActionId, string> = {
   togglePlay:    'keybindings.togglePlay',
   nextTrack:     'keybindings.nextTrack',
@@ -90,10 +77,6 @@ const KEY_LABELS: Record<string, string> = {
   Tab:        '⇥',
 }
 
-/**
- * Format a binding string for display.
- * Handles both simple codes ("Space") and modifier combos ("Ctrl+Shift+ArrowLeft").
- */
 export function codeToLabel(binding: string): string {
   return binding
     .split('+')
@@ -102,10 +85,25 @@ export function codeToLabel(binding: string): string {
 }
 
 /**
- * Returns true when a KeyboardEvent matches a binding string.
- * Modifier presence must match exactly — "ArrowLeft" won't fire if Ctrl is held.
+ * Convert binding string to Electrobun GlobalShortcut accelerator format.
+ * "Ctrl+Shift+Alt+KeyP" → "Control+Shift+Alt+P"
  */
+export function bindingToAccelerator(binding: string): string {
+  return binding
+    .split('+')
+    .map(part => {
+      if (part === 'Ctrl') return 'Control'
+      if (part.startsWith('Key')) return part.slice(3)
+      if (part.startsWith('Digit')) return part.slice(5)
+      if (part.startsWith('Arrow')) return part.slice(5)
+      return part
+    })
+    .join('+')
+}
+
 function matchBinding(e: KeyboardEvent, binding: string): boolean {
+  if (!binding) return false
+
   const parts = binding.split('+')
   const code  = parts[parts.length - 1]
   const mods  = new Set(parts.slice(0, -1).map(p => p.toLowerCase()))
@@ -117,40 +115,107 @@ function matchBinding(e: KeyboardEvent, binding: string): boolean {
     && e.metaKey  === mods.has('meta')
 }
 
-/** Returns true when a binding requires Ctrl+Shift+Alt — treated as "global" */
-function isGlobalBinding(binding: string): boolean {
-  const mods = new Set(binding.split('+').slice(0, -1).map(p => p.toLowerCase()))
-  return mods.has('ctrl') && mods.has('shift') && mods.has('alt')
-}
+// ─── Persisted state ─────────────────────────────────────────────────────────
 
-/** Whether the Ctrl+Shift+Alt+* global shortcuts are active */
-export const globalShortcutsEnabled = persistedSignal<boolean>('lyra:globalShortcuts', true)
-
-export function toggleGlobalShortcuts() {
-  globalShortcutsEnabled.value = !globalShortcutsEnabled.value
-}
-
-/** User-overridden bindings — only stores keys that differ from DEFAULT_BINDINGS */
+/** Empty string means unbound */
 export const customBindings = persistedSignal<Partial<Record<ActionId, string>>>(
   'lyra:keybindings',
   {},
 )
 
-/** Effective bindings = defaults merged with user overrides */
+export const globalShortcutActions = persistedSignal<Partial<Record<ActionId, boolean>>>(
+  'lyra:globalShortcutActions',
+  {},
+)
+
+// ─── Binding management ──────────────────────────────────────────────────────
+
 export function getEffectiveBindings(): Record<ActionId, string> {
   return { ...DEFAULT_BINDINGS, ...customBindings.peek() }
 }
 
-/** Override a single binding */
 export function setBinding(action: ActionId, code: string) {
   customBindings.value = { ...customBindings.value, [action]: code }
+  syncGlobalShortcuts()
 }
 
-/** Reset a single binding back to its default */
 export function resetBinding(action: ActionId) {
   const next = { ...customBindings.value }
   delete next[action]
   customBindings.value = next
+  syncGlobalShortcuts()
+}
+
+export function removeBinding(action: ActionId) {
+  if (globalShortcutActions.peek()[action]) {
+    const next = { ...globalShortcutActions.peek() }
+    delete next[action]
+    globalShortcutActions.value = next
+  }
+
+  customBindings.value = { ...customBindings.value, [action]: '' }
+  syncGlobalShortcuts()
+}
+
+// ─── Global shortcut management ──────────────────────────────────────────────
+// 通过 Electrobun GlobalShortcut API 注册系统级快捷键。
+// 由于 Linux webkit2gtk 下 bun→webview RPC 不通，采用 webview 轮询方案：
+//   bun 端: callback 将 action 入队 → webview 端: 每 300ms poll 取走并 dispatch
+// 如果 macOS/CEF 下 bun→webview 可用，可改为 rpc.send 直推，去掉轮询。
+//
+// 用 dynamic import('@/ipc') 而非顶层 import，避免 Electroview 初始化失败
+// 导致整个 keybindings 模块加载失败（keydown listener 也不会注册）。
+
+export function toggleActionGlobal(action: ActionId) {
+  const current = globalShortcutActions.peek()
+
+  if (current[action]) {
+    const next = { ...current }
+    delete next[action]
+    globalShortcutActions.value = next
+  } else {
+    globalShortcutActions.value = { ...current, [action]: true }
+  }
+
+  syncGlobalShortcuts()
+}
+
+async function syncGlobalShortcuts() {
+  try {
+    const { rpc } = await import('@/ipc')
+    await rpc.request.unregisterAllGlobalShortcuts({})
+
+    const bindings = getEffectiveBindings()
+    const globals = globalShortcutActions.peek()
+
+    for (const [action, enabled] of Object.entries(globals)) {
+      if (!enabled) continue
+      const binding = bindings[action as ActionId]
+      if (!binding) continue
+      await rpc.request.registerGlobalShortcut({
+        action,
+        accelerator: bindingToAccelerator(binding),
+      })
+    }
+  } catch {
+    // RPC not available (pure web dev mode)
+  }
+}
+
+export async function initGlobalShortcuts() {
+  await syncGlobalShortcuts()
+
+  setInterval(async () => {
+    try {
+      const { rpc } = await import('@/ipc')
+      const actions = await rpc.request.pollGlobalShortcutActions({})
+      for (const action of actions) {
+        dispatch(action as ActionId)
+      }
+    } catch {
+      // ignore
+    }
+  }, POLL_INTERVAL_MS)
 }
 
 // ─── Action dispatch ─────────────────────────────────────────────────────────
@@ -201,11 +266,9 @@ const INPUT_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT'])
 function handleKeydown(e: KeyboardEvent) {
   const target = e.target as HTMLElement
 
-  // Never intercept keys when the user is typing
   if (INPUT_TAGS.has(target.tagName)) return
   if (target.isContentEditable) return
 
-  // In player detail: plain left/right seek ±3s instead of their bound actions
   if (showPlayerDetail.peek() && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
     if (e.code === 'ArrowLeft') {
       e.preventDefault()
@@ -219,20 +282,10 @@ function handleKeydown(e: KeyboardEvent) {
     }
   }
 
-  const globalEnabled = globalShortcutsEnabled.peek()
-
-  // Fixed global shortcut: Ctrl+Shift+Alt+P → togglePlay
-  if (globalEnabled && matchBinding(e, GLOBAL_TOGGLE_PLAY_BINDING)) {
-    e.preventDefault()
-    dispatch('togglePlay')
-    return
-  }
-
   const bindings = getEffectiveBindings()
 
   for (const [actionId, binding] of Object.entries(bindings)) {
     if (matchBinding(e, binding)) {
-      if (isGlobalBinding(binding) && !globalEnabled) continue
       e.preventDefault()
       dispatch(actionId as ActionId)
       return
@@ -240,7 +293,6 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-/** Call once at app startup to enable keyboard shortcuts */
 export function initKeybindings() {
   window.addEventListener('keydown', handleKeydown)
 }

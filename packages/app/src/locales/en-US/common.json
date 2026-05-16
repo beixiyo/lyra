@@ -67,6 +67,9 @@
     "navAlbums": "Go to Albums",
     "navSongs": "Go to All Songs",
     "pressAnyKey": "Press any key…",
-    "resetToDefault": "Reset to default"
+    "resetToDefault": "Reset to default",
+    "removeBinding": "Remove binding",
+    "unbound": "Unbound",
+    "globalShortcutTip": "Register as system-wide shortcut (active even when app is not focused)"
   }
 }

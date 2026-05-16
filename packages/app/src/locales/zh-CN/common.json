@@ -67,6 +67,9 @@
     "navAlbums": "跳转到专辑",
     "navSongs": "跳转到所有歌曲",
     "pressAnyKey": "按下任意键…",
-    "resetToDefault": "恢复默认"
+    "resetToDefault": "恢复默认",
+    "removeBinding": "移除绑定",
+    "unbound": "未绑定",
+    "globalShortcutTip": "注册为系统级快捷键（应用失焦时仍可触发）"
   }
 }

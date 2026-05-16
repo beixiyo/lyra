@@ -9,7 +9,7 @@ import {
   scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
 import { getLastPlayed, restoreTrack } from '@/stores/player'
-import { initKeybindings } from '@/stores/keybindings'
+import { initKeybindings, initGlobalShortcuts } from '@/stores/keybindings'
 import { Sidebar } from '@/components/Sidebar'
 import { Player } from '@/components/Player'
 import { PlayerDetail } from '@/components/PlayerDetail'
@@ -24,6 +24,7 @@ export const App = memo(() => {
 
   onMounted(async () => {
     initKeybindings()
+    initGlobalShortcuts()
 
     if (musicDirs.value.length === 0) await detectMusicDirs()
     if (musicDirs.value.length === 0) return
