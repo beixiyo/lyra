@@ -63,6 +63,8 @@
     "navBack": "Go back / Close",
     "navArtists": "Go to Artists",
     "navAlbums": "Go to Albums",
-    "navSongs": "Go to All Songs"
+    "navSongs": "Go to All Songs",
+    "pressAnyKey": "Press any key…",
+    "resetToDefault": "Reset to default"
   }
 }

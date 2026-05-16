@@ -5,6 +5,7 @@ import {
 } from './player'
 import { toggleLyrics, showPlayerDetail, closePlayerDetail, showLyrics } from './lyrics'
 import { currentView, goBack } from './library'
+import { persistedSignal } from './persist'
 
 const SEEK_STEP_SEC = 5
 const VOLUME_STEP = 0.05
@@ -83,6 +84,29 @@ export function codeToLabel(code: string): string {
   return code.replace(/^Key/, '').replace(/^Digit/, '')
 }
 
+/** User-overridden bindings — only stores keys that differ from DEFAULT_BINDINGS */
+export const customBindings = persistedSignal<Partial<Record<ActionId, string>>>(
+  'lyra:keybindings',
+  {},
+)
+
+/** Effective bindings = defaults merged with user overrides */
+export function getEffectiveBindings(): Record<ActionId, string> {
+  return { ...DEFAULT_BINDINGS, ...customBindings.peek() }
+}
+
+/** Override a single binding */
+export function setBinding(action: ActionId, code: string) {
+  customBindings.value = { ...customBindings.value, [action]: code }
+}
+
+/** Reset a single binding back to its default */
+export function resetBinding(action: ActionId) {
+  const next = { ...customBindings.value }
+  delete next[action]
+  customBindings.value = next
+}
+
 // ─── Action dispatch ─────────────────────────────────────────────────────────
 
 let muted = false
@@ -135,7 +159,7 @@ function handleKeydown(e: KeyboardEvent) {
   if (INPUT_TAGS.has(target.tagName)) return
   if (target.isContentEditable) return
 
-  const bindings = DEFAULT_BINDINGS
+  const bindings = getEffectiveBindings()
 
   for (const [actionId, code] of Object.entries(bindings)) {
     if (e.code === code) {

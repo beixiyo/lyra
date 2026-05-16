@@ -63,6 +63,8 @@
     "navBack": "返回 / 关闭",
     "navArtists": "跳转到艺术家",
     "navAlbums": "跳转到专辑",
-    "navSongs": "跳转到所有歌曲"
+    "navSongs": "跳转到所有歌曲",
+    "pressAnyKey": "按下任意键…",
+    "resetToDefault": "恢复默认"
   }
 }

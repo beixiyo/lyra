@@ -1,18 +1,27 @@
 import { cn } from 'utils'
 import { memo } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
+import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
 import { useLatestCallback } from 'hooks'
-import { FolderPlus, X } from 'lucide-react'
+import { FolderPlus, X, RotateCcw } from 'lucide-react'
 import { musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
 import { supportedLanguages } from '@/locales'
 import { THEMES, THEME_IDS, currentTheme, dynamicAccent, applyTheme } from '@/stores/theme'
-import { DEFAULT_BINDINGS, ACTION_LABELS, codeToLabel } from '@/stores/keybindings'
+import {
+  DEFAULT_BINDINGS, ACTION_LABELS, codeToLabel,
+  customBindings, resetBinding,
+} from '@/stores/keybindings'
+import { useBindingCapture } from './useBindingCapture'
 import type { ThemeId } from '@/stores/theme'
+import type { ActionId } from '@/stores/keybindings'
 
 export const Settings = memo<SettingsProps>(({ style, className }) => {
   useSignals()
   const { t, i18n } = useTranslation()
+  const listening = useSignal<ActionId | null>(null)
+
+  useBindingCapture(listening.value, () => { listening.value = null })
 
   const handleLanguage = useLatestCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     i18n.changeLanguage(e.target.value)
@@ -24,6 +33,14 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
   const handleDynamicAccent = useLatestCallback(() => {
     dynamicAccent.value = !dynamicAccent.value
+  })
+
+  const handleStartListening = useLatestCallback((action: ActionId) => {
+    listening.value = action
+  })
+
+  const handleReset = useLatestCallback((action: ActionId) => {
+    resetBinding(action)
   })
 
   return (
@@ -141,20 +158,22 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
         {/* Keyboard shortcuts */}
         <SettingSection label={t('settings.keybindings')}>
-          <div className="flex flex-col gap-1">
-            {(Object.entries(DEFAULT_BINDINGS) as [keyof typeof DEFAULT_BINDINGS, string][]).map(([action, code]) => (
-              <div
-                key={action}
-                className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-overlay/[0.04] transition-colors"
-              >
-                <span className="text-[13px] text-secondary">
-                  {t(ACTION_LABELS[action])}
-                </span>
-                <kbd className="text-[12px] text-muted bg-overlay/[0.06] border border-line/[0.06] px-2 py-0.5 rounded font-mono">
-                  {codeToLabel(code)}
-                </kbd>
-              </div>
-            ))}
+          <div className="flex flex-col gap-0.5">
+            {(Object.keys(DEFAULT_BINDINGS) as ActionId[]).map(action => {
+              const custom = customBindings.value[action]
+              const effectiveCode = custom ?? DEFAULT_BINDINGS[action]
+              return (
+                <KeybindingRow
+                  key={action}
+                  label={t(ACTION_LABELS[action])}
+                  code={effectiveCode}
+                  isCustom={custom !== undefined}
+                  isListening={listening.value === action}
+                  onStartListening={() => handleStartListening(action)}
+                  onReset={() => handleReset(action)}
+                />
+              )
+            })}
           </div>
         </SettingSection>
 
@@ -169,6 +188,68 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 })
 
 Settings.displayName = 'Settings'
+
+// ─── Keybinding row ───────────────────────────────────────────────────────────
+
+const KeybindingRow = memo<KeybindingRowProps>(({
+  label,
+  code,
+  isCustom,
+  isListening,
+  onStartListening,
+  onReset,
+}) => {
+  const { t } = useTranslation()
+
+  return (
+    <button
+      onClick={onStartListening}
+      className={cn(
+        'flex items-center justify-between w-full px-3 py-2 rounded-lg transition-colors text-left',
+        isListening
+          ? 'bg-accent/[0.08] ring-1 ring-inset ring-accent/[0.25]'
+          : 'hover:bg-overlay/[0.04]',
+      )}
+    >
+      <span className="text-[13px] text-secondary">{label}</span>
+
+      <div className="flex items-center gap-2">
+        {isListening
+          ? (
+            <span className="text-[12px] text-accent italic">
+              {t('keybindings.pressAnyKey')}
+            </span>
+          )
+          : (
+            <>
+              <kbd className={cn(
+                'text-[12px] px-2 py-0.5 rounded font-mono border',
+                isCustom
+                  ? 'text-accent bg-accent/[0.08] border-accent/[0.25]'
+                  : 'text-muted bg-overlay/[0.06] border-line/[0.06]',
+              )}>
+                {codeToLabel(code)}
+              </kbd>
+
+              {isCustom && (
+                <span
+                  role="button"
+                  onClick={(e) => { e.stopPropagation(); onReset() }}
+                  className="text-muted hover:text-primary transition-colors"
+                  title={t('keybindings.resetToDefault')}
+                >
+                  <RotateCcw className="w-3 h-3" />
+                </span>
+              )}
+            </>
+          )
+        }
+      </div>
+    </button>
+  )
+})
+
+KeybindingRow.displayName = 'KeybindingRow'
 
 // ─── Theme accent dot ─────────────────────────────────────────────────────────
 
@@ -201,3 +282,12 @@ export type SettingsProps = {} & React.HTMLAttributes<HTMLElement>
 type SettingSectionProps = {
   label: string
 } & React.PropsWithChildren
+
+type KeybindingRowProps = {
+  label: string
+  code: string
+  isCustom: boolean
+  isListening: boolean
+  onStartListening: () => void
+  onReset: () => void
+}
