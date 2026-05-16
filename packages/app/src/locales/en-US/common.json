@@ -42,6 +42,8 @@
     "addDirectory": "Add directory",
     "noDirectories": "No music directories configured",
     "keybindings": "Keyboard Shortcuts",
+    "globalShortcuts": "Enable global shortcuts",
+    "globalShortcutsDesc": "Ctrl+Shift+Alt+Arrow keys control playback, Ctrl+Shift+Alt+P play/pause",
     "version": "Version"
   },
   "lyrics": {

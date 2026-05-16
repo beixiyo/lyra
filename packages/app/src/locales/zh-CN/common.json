@@ -42,6 +42,8 @@
     "addDirectory": "添加目录",
     "noDirectories": "未配置音乐目录",
     "keybindings": "键盘快捷键",
+    "globalShortcuts": "启用全局快捷键",
+    "globalShortcutsDesc": "Ctrl+Shift+Alt+方向键控制播放，Ctrl+Shift+Alt+P 播放/暂停",
     "version": "版本"
   },
   "lyrics": {

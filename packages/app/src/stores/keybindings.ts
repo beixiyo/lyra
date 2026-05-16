@@ -8,6 +8,7 @@ import { currentView, goBack } from './library'
 import { persistedSignal } from './persist'
 
 const SEEK_STEP_SEC = 5
+const DETAIL_SEEK_STEP = 3
 const VOLUME_STEP = 0.05
 
 /** All bindable action identifiers */
@@ -31,13 +32,15 @@ export type ActionId =
 /**
  * Default keyboard bindings.
  * Values are KeyboardEvent.code strings (layout-independent).
+ * Bindings containing Ctrl+Shift+Alt are treated as "global" and respect
+ * the globalShortcutsEnabled toggle.
  */
 export const DEFAULT_BINDINGS: Record<ActionId, string> = {
   togglePlay:    'Space',
-  nextTrack:     'ArrowRight',
-  prevTrack:     'ArrowLeft',
-  volumeUp:      'ArrowUp',
-  volumeDown:    'ArrowDown',
+  nextTrack:     'Ctrl+Shift+Alt+ArrowRight',
+  prevTrack:     'Ctrl+Shift+Alt+ArrowLeft',
+  volumeUp:      'Ctrl+Shift+Alt+ArrowUp',
+  volumeDown:    'Ctrl+Shift+Alt+ArrowDown',
   seekForward:   'KeyL',
   seekBack:      'KeyJ',
   toggleMute:    'KeyM',
@@ -49,6 +52,12 @@ export const DEFAULT_BINDINGS: Record<ActionId, string> = {
   navAlbums:     'Digit2',
   navSongs:      'Digit3',
 }
+
+/**
+ * Fixed global shortcut for toggling playback — not user-configurable,
+ * active only when globalShortcutsEnabled is true.
+ */
+const GLOBAL_TOGGLE_PLAY_BINDING = 'Ctrl+Shift+Alt+KeyP'
 
 /** Human-readable label for display in Settings */
 export const ACTION_LABELS: Record<ActionId, string> = {
@@ -106,6 +115,19 @@ function matchBinding(e: KeyboardEvent, binding: string): boolean {
     && e.shiftKey === mods.has('shift')
     && e.altKey   === mods.has('alt')
     && e.metaKey  === mods.has('meta')
+}
+
+/** Returns true when a binding requires Ctrl+Shift+Alt — treated as "global" */
+function isGlobalBinding(binding: string): boolean {
+  const mods = new Set(binding.split('+').slice(0, -1).map(p => p.toLowerCase()))
+  return mods.has('ctrl') && mods.has('shift') && mods.has('alt')
+}
+
+/** Whether the Ctrl+Shift+Alt+* global shortcuts are active */
+export const globalShortcutsEnabled = persistedSignal<boolean>('lyra:globalShortcuts', true)
+
+export function toggleGlobalShortcuts() {
+  globalShortcutsEnabled.value = !globalShortcutsEnabled.value
 }
 
 /** User-overridden bindings — only stores keys that differ from DEFAULT_BINDINGS */
@@ -183,10 +205,34 @@ function handleKeydown(e: KeyboardEvent) {
   if (INPUT_TAGS.has(target.tagName)) return
   if (target.isContentEditable) return
 
+  // In player detail: plain left/right seek ±3s instead of their bound actions
+  if (showPlayerDetail.peek() && !e.ctrlKey && !e.shiftKey && !e.altKey && !e.metaKey) {
+    if (e.code === 'ArrowLeft') {
+      e.preventDefault()
+      seekTo(Math.max(currentTime.peek() - DETAIL_SEEK_STEP, 0))
+      return
+    }
+    if (e.code === 'ArrowRight') {
+      e.preventDefault()
+      seekTo(Math.min(currentTime.peek() + DETAIL_SEEK_STEP, duration.peek()))
+      return
+    }
+  }
+
+  const globalEnabled = globalShortcutsEnabled.peek()
+
+  // Fixed global shortcut: Ctrl+Shift+Alt+P → togglePlay
+  if (globalEnabled && matchBinding(e, GLOBAL_TOGGLE_PLAY_BINDING)) {
+    e.preventDefault()
+    dispatch('togglePlay')
+    return
+  }
+
   const bindings = getEffectiveBindings()
 
   for (const [actionId, binding] of Object.entries(bindings)) {
     if (matchBinding(e, binding)) {
+      if (isGlobalBinding(binding) && !globalEnabled) continue
       e.preventDefault()
       dispatch(actionId as ActionId)
       return

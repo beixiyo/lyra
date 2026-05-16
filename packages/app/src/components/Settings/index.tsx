@@ -11,6 +11,7 @@ import { THEMES, THEME_IDS, currentTheme, dynamicAccent, applyTheme } from '@/st
 import {
   DEFAULT_BINDINGS, ACTION_LABELS, codeToLabel,
   customBindings, resetBinding,
+  globalShortcutsEnabled, toggleGlobalShortcuts,
 } from '@/stores/keybindings'
 import { useBindingCapture } from './useBindingCapture'
 import type { ThemeId } from '@/stores/theme'
@@ -158,6 +159,38 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
         {/* Keyboard shortcuts */}
         <SettingSection label={t('settings.keybindings')}>
+          <div className="flex flex-col gap-3">
+
+            {/* Global shortcuts toggle */}
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <button
+                role="switch"
+                aria-checked={globalShortcutsEnabled.value}
+                onClick={toggleGlobalShortcuts}
+                className={cn(
+                  'w-9 h-5 rounded-full transition-colors relative shrink-0',
+                  globalShortcutsEnabled.value ? 'bg-accent' : 'bg-overlay/[0.15]',
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute top-0.5 w-4 h-4 rounded-full bg-primary shadow-sm transition-all',
+                    globalShortcutsEnabled.value ? 'left-[18px]' : 'left-0.5',
+                  )}
+                />
+              </button>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[13px] text-secondary group-hover:text-primary transition-colors">
+                  {t('settings.globalShortcuts')}
+                </span>
+                <span className="text-[11px] text-muted">
+                  {t('settings.globalShortcutsDesc')}
+                </span>
+              </div>
+            </label>
+
+          </div>
+
           <div className="flex flex-col gap-0.5">
             {(Object.keys(DEFAULT_BINDINGS) as ActionId[]).map(action => {
               const custom = customBindings.value[action]
