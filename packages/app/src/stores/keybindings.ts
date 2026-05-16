@@ -69,19 +69,43 @@ export const ACTION_LABELS: Record<ActionId, string> = {
   navSongs:      'keybindings.navSongs',
 }
 
-/** Human-readable key name for a KeyboardEvent.code */
-export function codeToLabel(code: string): string {
-  const map: Record<string, string> = {
-    Space: '␣ Space',
-    ArrowLeft: '← Left',
-    ArrowRight: '→ Right',
-    ArrowUp: '↑ Up',
-    ArrowDown: '↓ Down',
-    Escape: 'Esc',
-  }
-  if (code in map) return map[code]
-  // e.g. 'KeyL' → 'L', 'Digit1' → '1'
-  return code.replace(/^Key/, '').replace(/^Digit/, '')
+const KEY_LABELS: Record<string, string> = {
+  Space:      '␣',
+  ArrowLeft:  '←',
+  ArrowRight: '→',
+  ArrowUp:    '↑',
+  ArrowDown:  '↓',
+  Escape:     'Esc',
+  Enter:      '↵',
+  Backspace:  '⌫',
+  Tab:        '⇥',
+}
+
+/**
+ * Format a binding string for display.
+ * Handles both simple codes ("Space") and modifier combos ("Ctrl+Shift+ArrowLeft").
+ */
+export function codeToLabel(binding: string): string {
+  return binding
+    .split('+')
+    .map(part => KEY_LABELS[part] ?? part.replace(/^Key/, '').replace(/^Digit/, ''))
+    .join('+')
+}
+
+/**
+ * Returns true when a KeyboardEvent matches a binding string.
+ * Modifier presence must match exactly — "ArrowLeft" won't fire if Ctrl is held.
+ */
+function matchBinding(e: KeyboardEvent, binding: string): boolean {
+  const parts = binding.split('+')
+  const code  = parts[parts.length - 1]
+  const mods  = new Set(parts.slice(0, -1).map(p => p.toLowerCase()))
+
+  return e.code === code
+    && e.ctrlKey  === mods.has('ctrl')
+    && e.shiftKey === mods.has('shift')
+    && e.altKey   === mods.has('alt')
+    && e.metaKey  === mods.has('meta')
 }
 
 /** User-overridden bindings — only stores keys that differ from DEFAULT_BINDINGS */
@@ -161,9 +185,8 @@ function handleKeydown(e: KeyboardEvent) {
 
   const bindings = getEffectiveBindings()
 
-  for (const [actionId, code] of Object.entries(bindings)) {
-    if (e.code === code) {
-      // Prevent default browser behaviour (e.g. Space scrolling the page)
+  for (const [actionId, binding] of Object.entries(bindings)) {
+    if (matchBinding(e, binding)) {
       e.preventDefault()
       dispatch(actionId as ActionId)
       return
