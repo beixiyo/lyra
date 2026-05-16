@@ -45,21 +45,23 @@ export function parseLyrics(raw: string): ParsedLyrics {
   return { type: 'plain', text: raw.trim() }
 }
 
-// CJK Unified Ideographs + Hiragana/Katakana
-const CJK_RE = /[一-鿿぀-ヿ]/
+// CJK Unified Ideographs + Hiragana/Katakana + fullwidth lenticular brackets 【】
+const CJK_RE = /[一-鿿぀-ヿ【】]/
 
 /**
  * Split a bilingual lyric line (e.g. "Blow today 如今吹拂着大地") into
  * [latin, cjk]. Returns null when the line is monolingual or starts with CJK.
+ *
+ * Also handles the 【Chinese】 bracket notation used in some LRC files.
  */
 export function splitBilingual(text: string): [string, string] | null {
   const idx = text.search(CJK_RE)
   if (idx <= 0) return null
 
-  const latin = text.slice(0, idx).trim()
+  const latin = text.slice(0, idx).trim().replace(/[【】]+$/, '').trim()
   if (!latin || !/[a-zA-Z]/.test(latin)) return null
 
-  const cjk = text.slice(idx).trim()
+  const cjk = text.slice(idx).trim().replace(/^[【】]+/, '').replace(/[【】]+$/, '').trim()
   if (!cjk) return null
 
   return [latin, cjk]
