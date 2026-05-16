@@ -31,6 +31,7 @@ export const PlayerDetail = memo(() => {
           img={getCoverUrl(track.filePath)}
           blur="80px"
           showForeground={false}
+          flow
           className="absolute inset-0"
         />
       )}

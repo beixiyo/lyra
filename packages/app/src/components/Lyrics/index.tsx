@@ -7,6 +7,7 @@ import { Music2 } from 'lucide-react'
 import { currentTrack, seekTo } from '@/stores/player'
 import { parsedLyrics, activeLyricIndex } from '@/stores/lyrics'
 import { useInsertStyle } from 'hooks'
+import { splitBilingual } from '@/utils/lrc'
 import type { LyricLine } from '@/utils/lrc'
 
 const LYRIC_ANCHOR_CSS = `
@@ -104,17 +105,7 @@ export const LrcView = memo<{ lines: LyricLine[] }>(({ lines }) => {
           onMouseEnter={() => { hoveredTime.value = line.time }}
           className="lyric-row flex items-center cursor-pointer"
         >
-          <p
-            className={cn(
-              'flex-1 py-1.5 leading-relaxed break-words text-center',
-              'transition-all duration-[600ms] ease-out origin-center',
-              i === activeIdx
-                ? 'text-[16px] font-semibold text-primary scale-[1.06]'
-                : 'text-[14px] text-secondary scale-100 hover:text-primary/70',
-            )}
-          >
-            {line.text}
-          </p>
+          <LyricContent line={line} active={i === activeIdx} />
         </div>
       ))}
 
@@ -126,6 +117,58 @@ export const LrcView = memo<{ lines: LyricLine[] }>(({ lines }) => {
 })
 
 LrcView.displayName = 'LrcView'
+
+// ─── Single lyric line — mono or bilingual ────────────────────────────────────
+
+const LyricContent = memo<{ line: LyricLine; active: boolean }>(({ line, active }) => {
+  const bilingual = splitBilingual(line.text)
+
+  const baseClass = cn(
+    'flex-1 py-1.5 text-center break-words leading-relaxed',
+    'transition-all duration-[600ms] ease-out origin-center',
+  )
+
+  if (!bilingual) {
+    return (
+      <p className={cn(
+        baseClass,
+        active
+          ? 'text-[16px] font-semibold text-primary scale-[1.06]'
+          : 'text-[14px] text-secondary scale-100 hover:text-primary/70',
+      )}>
+        {line.text}
+      </p>
+    )
+  }
+
+  const [latin, cjk] = bilingual
+  return (
+    <div className={cn(
+      baseClass,
+      'flex flex-col items-center gap-0.5',
+      active ? 'scale-[1.06]' : 'scale-100',
+    )}>
+      <span className={cn(
+        'transition-colors duration-[600ms]',
+        active
+          ? 'text-[16px] font-semibold text-primary'
+          : 'text-[14px] text-secondary hover:text-primary/70',
+      )}>
+        {latin}
+      </span>
+      <span className={cn(
+        'transition-colors duration-[600ms]',
+        active
+          ? 'text-[13px] text-primary/70'
+          : 'text-[12px] text-secondary/50 hover:text-primary/40',
+      )}>
+        {cjk}
+      </span>
+    </div>
+  )
+})
+
+LyricContent.displayName = 'LyricContent'
 
 // ─── Plain text view ──────────────────────────────────────────────────────────
 
