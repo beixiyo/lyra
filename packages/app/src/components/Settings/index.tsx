@@ -5,6 +5,7 @@ import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
 import { useLatestCallback } from 'hooks'
 import { FolderPlus, X, RotateCcw } from 'lucide-react'
+import { Select, Switch } from 'comps'
 import { musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
 import { supportedLanguages } from '@/locales'
 import { THEMES, THEME_IDS, currentTheme, dynamicAccent, applyTheme } from '@/stores/theme'
@@ -24,16 +25,21 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
   useBindingCapture(listening.value, () => { listening.value = null })
 
-  const handleLanguage = useLatestCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    i18n.changeLanguage(e.target.value)
+  const handleLanguage = useLatestCallback((value: string) => {
+    i18n.changeLanguage(value)
   })
 
   const handleTheme = useLatestCallback((id: ThemeId) => {
     applyTheme(id)
   })
 
-  const handleDynamicAccent = useLatestCallback(() => {
-    dynamicAccent.value = !dynamicAccent.value
+  const handleDynamicAccent = useLatestCallback((checked: boolean) => {
+    dynamicAccent.value = checked
+  })
+
+  const handleGlobalShortcuts = useLatestCallback((checked: boolean) => {
+    if (checked !== globalShortcutsEnabled.value)
+      toggleGlobalShortcuts()
   })
 
   const handleStartListening = useLatestCallback((action: ActionId) => {
@@ -57,21 +63,14 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
         {/* Language */}
         <SettingSection label={t('settings.language')}>
-          <select
+          <Select
             value={i18n.language}
             onChange={handleLanguage}
-            className={cn(
-              'px-3 py-1.5 text-[13px] rounded-lg',
-              'bg-overlay/[0.06] text-primary border border-line/[0.06]',
-              'outline-none focus:border-line/[0.1] cursor-pointer',
-            )}
-          >
-            {supportedLanguages.map(lang => (
-              <option key={lang.code} value={lang.code} className="bg-surface">
-                {lang.label}
-              </option>
-            ))}
-          </select>
+            options={supportedLanguages.map(lang => ({
+              value: lang.code,
+              label: lang.label,
+            }))}
+          />
         </SettingSection>
 
         {/* Theme */}
@@ -99,22 +98,10 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
             {/* Dynamic accent toggle */}
             <label className="flex items-center gap-3 cursor-pointer group">
-              <button
-                role="switch"
-                aria-checked={dynamicAccent.value}
-                onClick={handleDynamicAccent}
-                className={cn(
-                  'w-9 h-5 rounded-full transition-colors relative shrink-0',
-                  dynamicAccent.value ? 'bg-accent' : 'bg-overlay/[0.15]',
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 w-4 h-4 rounded-full bg-primary shadow-sm transition-all',
-                    dynamicAccent.value ? 'left-[18px]' : 'left-0.5',
-                  )}
-                />
-              </button>
+              <Switch
+                checked={dynamicAccent.value}
+                onChange={handleDynamicAccent}
+              />
               <span className="text-[13px] text-secondary group-hover:text-primary transition-colors">
                 {t('settings.dynamicAccent')}
               </span>
@@ -163,22 +150,10 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
             {/* Global shortcuts toggle */}
             <label className="flex items-center gap-3 cursor-pointer group">
-              <button
-                role="switch"
-                aria-checked={globalShortcutsEnabled.value}
-                onClick={toggleGlobalShortcuts}
-                className={cn(
-                  'w-9 h-5 rounded-full transition-colors relative shrink-0',
-                  globalShortcutsEnabled.value ? 'bg-accent' : 'bg-overlay/[0.15]',
-                )}
-              >
-                <span
-                  className={cn(
-                    'absolute top-0.5 w-4 h-4 rounded-full bg-primary shadow-sm transition-all',
-                    globalShortcutsEnabled.value ? 'left-[18px]' : 'left-0.5',
-                  )}
-                />
-              </button>
+              <Switch
+                checked={globalShortcutsEnabled.value}
+                onChange={handleGlobalShortcuts}
+              />
               <div className="flex flex-col gap-0.5">
                 <span className="text-[13px] text-secondary group-hover:text-primary transition-colors">
                   {t('settings.globalShortcuts')}

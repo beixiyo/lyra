@@ -79,11 +79,16 @@ export const currentTheme = persistedSignal<ThemeId>('lyra:theme', 'dark')
 /** Whether album art drives the accent color dynamically */
 export const dynamicAccent = persistedSignal('lyra:dynamicAccent', true)
 
-function applyTokens(tokens: ThemeTokens) {
+const DARK_THEMES = new Set<ThemeId>(['dark', 'nord', 'rosepine'])
+
+function applyTokens(id: ThemeId, tokens: ThemeTokens) {
   const root = document.documentElement
   for (const [key, value] of Object.entries(tokens)) {
     root.style.setProperty(key, value)
   }
+  const isDark = DARK_THEMES.has(id)
+  root.classList.toggle('dark', isDark)
+  root.classList.toggle('light', !isDark)
 }
 
 /**
@@ -102,5 +107,5 @@ export function applyTheme(id: ThemeId) {
 
 // Apply theme tokens whenever currentTheme changes (runs immediately on import)
 effect(() => {
-  applyTokens(THEMES[currentTheme.value])
+  applyTokens(currentTheme.value, THEMES[currentTheme.value])
 })
