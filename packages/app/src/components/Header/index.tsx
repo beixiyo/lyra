@@ -30,7 +30,7 @@ export const Header = memo<HeaderProps>(({ style, className, children }) => {
       className={cn(
         'h-11 shrink-0 flex items-center gap-3 px-4',
         pos === 'right' ? 'flex-row' : 'flex-row-reverse',
-        'electrobun-webkit-app-region-drag',
+        'electrobun-webkit-app-region-drag cursor-grab active:cursor-grabbing',
         className,
       )}
       style={style}
@@ -38,7 +38,6 @@ export const Header = memo<HeaderProps>(({ style, className, children }) => {
       <div className={cn(
         'flex-1 flex items-center',
         pos === 'right' ? 'justify-start' : 'justify-end',
-        'electrobun-webkit-app-region-no-drag',
       )}>
         {children}
       </div>

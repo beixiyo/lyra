@@ -27,7 +27,7 @@ export const SearchBar = memo<SearchBarProps>(({ style, className }) => {
       initial={{ opacity: 0, y: -6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 350, damping: 28, delay: 0.2 }}
-      className={cn('relative flex items-center', className)}
+      className={cn('relative flex items-center electrobun-webkit-app-region-no-drag', className)}
       style={style}
     >
       <Search className="absolute left-2.5 w-3.5 h-3.5 text-muted pointer-events-none" />
