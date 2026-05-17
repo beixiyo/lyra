@@ -1,5 +1,5 @@
 import { signal, computed, effect } from '@preact/signals-react'
-import { persistedSignal } from './persist'
+import { persistedSignal, store } from './persist'
 import { setAccentColor, dynamicAccent } from './theme'
 import { extractVibrantColor } from '@/utils/colorExtract'
 import type { Track } from '@/types/music'
@@ -45,12 +45,10 @@ let lastSaveTs = 0
 function saveLastPlayed() {
   const track = currentTrack.value
   if (!track) return
-  try {
-    localStorage.setItem('lyra:lastPlayed', JSON.stringify({
-      filePath: track.filePath,
-      time: audio.currentTime,
-    }))
-  } catch { /* quota exceeded */ }
+  store.setItem('lyra:lastPlayed', {
+    filePath: track.filePath,
+    time: audio.currentTime,
+  })
 }
 
 audio.addEventListener('timeupdate', () => {
@@ -250,10 +248,9 @@ export function restoreTrack(track: Track, list: Track[], index: number, time: n
   audio.addEventListener('loadedmetadata', onReady)
 }
 
-export function getLastPlayed(): { filePath: string; time: number } | null {
+export async function getLastPlayed(): Promise<{ filePath: string; time: number } | null> {
   try {
-    const stored = localStorage.getItem('lyra:lastPlayed')
-    return stored ? JSON.parse(stored) : null
+    return await store.getItem('lyra:lastPlayed')
   } catch {
     return null
   }

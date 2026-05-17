@@ -3,6 +3,7 @@ import { memo, useState } from 'react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { ChevronDown, Music2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import type { Track } from '@/types/music'
 import { currentTrack, getCoverUrl, isPlaying } from '@/stores/player'
 import { showPlayerDetail, closePlayerDetail, parsedLyrics } from '@/stores/lyrics'
 import { PlaybackControls, VolumeControl } from '../Player'
@@ -109,6 +110,8 @@ const TrackSection = memo<{ track: ReturnType<typeof currentTrack.peek> }>(({ tr
       )}
     </div>
 
+    {track && <AudioInfo track={track} />}
+
     <div className="w-full space-y-3">
       <PlaybackControls />
       <div className="flex justify-center pt-1">
@@ -149,6 +152,51 @@ const LyricsSection = memo(() => {
 })
 
 LyricsSection.displayName = 'LyricsSection'
+
+// ─── Audio metadata badges ───────────────────────────────────────────────────
+
+function formatBitrate(bps: number): string {
+  return bps >= 1000 ? `${Math.round(bps / 1000)} kbps` : `${bps} bps`
+}
+
+function formatSampleRate(hz: number): string {
+  return hz >= 1000 ? `${(hz / 1000).toFixed(1).replace(/\.0$/, '')} kHz` : `${hz} Hz`
+}
+
+const AudioInfo = memo<{ track: Track }>(({ track }) => {
+  const { t } = useTranslation()
+
+  const tags: { text: string; accent?: boolean }[] = []
+
+  const codec = track.codec || track.container
+  if (codec) tags.push({ text: codec.toUpperCase() })
+  if (track.bitrate) tags.push({ text: formatBitrate(track.bitrate) })
+  if (track.sampleRate) tags.push({ text: formatSampleRate(track.sampleRate) })
+  if (track.bitsPerSample) tags.push({ text: `${track.bitsPerSample}-bit` })
+  if (track.lossless) tags.push({ text: t('audioInfo.lossless'), accent: true })
+
+  if (tags.length === 0) return null
+
+  return (
+    <div className="flex flex-wrap justify-center gap-1.5">
+      {tags.map(tag => (
+        <span
+          key={tag.text}
+          className={cn(
+            'px-2 py-0.5 rounded-md text-[11px] backdrop-blur-sm',
+            tag.accent
+              ? 'bg-accent/15 text-accent border border-accent/20'
+              : 'bg-overlay/[0.08] text-secondary',
+          )}
+        >
+          {tag.text}
+        </span>
+      ))}
+    </div>
+  )
+})
+
+AudioInfo.displayName = 'AudioInfo'
 
 // ─── Empty state (inline, no icon centering) ──────────────────────────────────
 

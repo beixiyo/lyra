@@ -4,8 +4,9 @@ import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useTranslation } from 'react-i18next'
 import { useLatestCallback } from 'hooks'
-import { Disc3, Users, ListMusic, Disc, Settings } from 'lucide-react'
-import { currentView, goBack } from '@/stores/library'
+import { Disc3, Users, ListMusic, Disc, Settings, Plus, ListPlus, Trash2 } from 'lucide-react'
+import { currentView, goBack, selectPlaylist, selectedPlaylistId } from '@/stores/library'
+import { playlistList, createPlaylist, deletePlaylist } from '@/stores/playlist'
 
 const NAV_ITEMS = [
   { id: 'artists' as const, icon: Users, key: 'nav.artists' },
@@ -48,7 +49,7 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
         <span className="text-[15px] font-semibold tracking-wide text-primary">Lyra</span>
       </motion.div>
 
-      <nav className="flex-1 px-3">
+      <nav className="flex-1 px-3 overflow-y-auto custom-scrollbar">
         <p className="px-2.5 mb-2 text-[11px] font-medium uppercase tracking-wider text-muted">
           {t('nav.library')}
         </p>
@@ -90,6 +91,49 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
             )
           })}
         </motion.div>
+
+        <div className="mt-5">
+          <div className="flex items-center justify-between px-2.5 mb-2">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted">
+              {t('playlist.title')}
+            </p>
+            <button
+              onClick={() => createPlaylist(t('playlist.defaultName'))}
+              className="text-muted hover:text-primary transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-0.5">
+            {playlistList.value.map(pl => {
+              const active = currentView.value === 'playlist-detail'
+                && selectedPlaylistId.value === pl.id
+
+              return (
+                <div
+                  key={pl.id}
+                  className={cn(
+                    'group flex items-center gap-2 w-full px-2.5 py-[7px] rounded-lg text-[13px] transition-colors cursor-pointer',
+                    active
+                      ? 'bg-overlay/[0.08] text-primary font-medium'
+                      : 'text-secondary hover:text-primary hover:bg-overlay/[0.04]',
+                  )}
+                  onClick={() => selectPlaylist(pl.id)}
+                >
+                  <ListPlus className="w-4 h-4 shrink-0" />
+                  <span className="flex-1 truncate">{pl.name}</span>
+                  <button
+                    onClick={e => { e.stopPropagation(); deletePlaylist(pl.id) }}
+                    className="opacity-0 group-hover:opacity-100 text-muted hover:text-red-400 transition-opacity"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </nav>
 
       <motion.div

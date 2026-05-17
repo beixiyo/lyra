@@ -208,9 +208,17 @@ export async function initGlobalShortcuts() {
   setInterval(async () => {
     try {
       const { rpc } = await import('@/ipc')
+
       const actions = await rpc.request.pollGlobalShortcutActions({})
       for (const action of actions) {
         dispatch(action as ActionId)
+      }
+
+      const trayActions = await rpc.request.pollTrayActions({})
+      for (const action of trayActions) {
+        if (action === 'togglePlay') dispatch('togglePlay')
+        else if (action === 'next') dispatch('nextTrack')
+        else if (action === 'prev') dispatch('prevTrack')
       }
     } catch {
       // ignore

@@ -1,14 +1,17 @@
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useTranslation } from 'react-i18next'
 import { onMounted } from 'hooks'
 import { Loader2, FolderOpen } from 'lucide-react'
 import {
-  currentView, selectedFolder, selectedAlbum, displayTracks, albumTracks,
+  currentView, selectedFolder, selectedAlbum, selectedPlaylistId,
+  displayTracks, albumTracks,
   tracks, filteredTracks, isScanning, scanError, searchQuery,
   scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
+import { getPlaylist, renamePlaylist } from '@/stores/playlist'
+import type { Track } from '@/types/music'
 import { getLastPlayed, restoreTrack } from '@/stores/player'
 import { initKeybindings, initGlobalShortcuts } from '@/stores/keybindings'
 import { Sidebar } from '@/components/Sidebar'
@@ -35,7 +38,7 @@ export const App = memo(() => {
 
     await scanLibrary(musicDirs.value)
 
-    const last = getLastPlayed()
+    const last = await getLastPlayed()
     if (!last) return
 
     const allTracks = tracks.value
@@ -178,6 +181,24 @@ const MainContent = memo(() => {
     )
   }
 
+  if (view === 'playlist-detail') {
+    const pl = selectedPlaylistId.value ? getPlaylist(selectedPlaylistId.value) : undefined
+    if (!pl) return null
+
+    const allTracks = tracks.value
+    const plTracks = pl.trackPaths
+      .map(p => allTracks.find(t => t.filePath === p))
+      .filter((t): t is Track => !!t)
+
+    return (
+      <PlaylistDetailView
+        tracks={plTracks}
+        playlistId={pl.id}
+        title={pl.name}
+      />
+    )
+  }
+
   if (view === 'songs') {
     return (
       <TrackList
@@ -193,3 +214,52 @@ const MainContent = memo(() => {
 })
 
 MainContent.displayName = 'MainContent'
+
+const PlaylistDetailView = memo<{
+  tracks: Track[]
+  playlistId: string
+  title: string
+}>(({ tracks: plTracks, playlistId, title }) => {
+  const { t } = useTranslation()
+  const [editingName, setEditingName] = useState(false)
+
+  return (
+    <div className="flex flex-col">
+      <div className="flex items-center gap-3 mb-4">
+        <button
+          onClick={goBack}
+          className="text-secondary hover:text-primary transition-colors text-sm"
+        >
+          &larr;
+        </button>
+
+        {editingName
+          ? <input
+              autoFocus
+              defaultValue={title}
+              className="text-xl font-bold text-primary bg-transparent border-b border-accent outline-none"
+              onBlur={e => { renamePlaylist(playlistId, e.target.value || title); setEditingName(false) }}
+              onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
+            />
+          : <h2
+              className="text-xl font-bold text-primary cursor-pointer hover:text-accent transition-colors"
+              onDoubleClick={() => setEditingName(true)}
+            >
+              {title}
+            </h2>
+        }
+
+        <span className="text-xs text-muted">
+          {t('playlist.trackCount', { count: plTracks.length })}
+        </span>
+      </div>
+
+      {plTracks.length === 0
+        ? <p className="text-sm text-muted py-8 text-center">{t('playlist.empty')}</p>
+        : <TrackList tracks={plTracks} />
+      }
+    </div>
+  )
+})
+
+PlaylistDetailView.displayName = 'PlaylistDetailView'

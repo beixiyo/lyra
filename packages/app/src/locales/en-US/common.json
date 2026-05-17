@@ -61,10 +61,29 @@
     "title": "Queue",
     "empty": "Queue is empty"
   },
+  "audioInfo": {
+    "format": "Format",
+    "bitrate": "Bitrate",
+    "sampleRate": "Sample Rate",
+    "bitDepth": "Bit Depth",
+    "lossless": "Lossless"
+  },
+  "playlist": {
+    "title": "Playlists",
+    "new": "New Playlist",
+    "rename": "Rename",
+    "delete": "Delete Playlist",
+    "deleteConfirm": "Delete \"{{name}}\"?",
+    "empty": "Playlist is empty",
+    "trackCount_one": "{{count}} song",
+    "trackCount_other": "{{count}} songs",
+    "defaultName": "New Playlist"
+  },
   "contextMenu": {
     "play": "Play",
     "playNext": "Play Next",
     "addToQueue": "Add to Queue",
+    "addToPlaylist": "Add to Playlist",
     "like": "Like",
     "unlike": "Unlike"
   },

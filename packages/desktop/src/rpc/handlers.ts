@@ -1,5 +1,6 @@
 import { GlobalShortcut } from 'electrobun/bun'
 import { mainWindow } from './window'
+import { pendingTrayActions } from './tray'
 
 // Workaround: bun→webview RPC (send/request) 在 Linux webkit2gtk + dev 模式下不通，
 // 所以改为 webview 轮询 bun 端的 action 队列。
@@ -92,8 +93,19 @@ export const bunRequests = {
   },
 
   windowClose: () => {
+    mainWindow?.hide()
+    return true
+  },
+
+  appQuit: () => {
     mainWindow?.close()
     return true
+  },
+
+  pollTrayActions: () => {
+    const actions = [...pendingTrayActions]
+    pendingTrayActions.length = 0
+    return actions
   },
 }
 

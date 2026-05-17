@@ -9,6 +9,7 @@ export const scanError = signal<string | null>(null)
 export const currentView = persistedSignal<ViewType>('lyra:view', 'artists')
 export const selectedFolder = signal<string | null>(null)
 export const selectedAlbum = signal<string | null>(null)
+export const selectedPlaylistId = signal<string | null>(null)
 export const musicDirs = persistedSignal<string[]>('lyra:musicDirs', [])
 export const searchQuery = signal('')
 
@@ -161,9 +162,15 @@ export function selectAlbum(album: string) {
   currentView.value = 'album-detail'
 }
 
+export function selectPlaylist(id: string) {
+  selectedPlaylistId.value = id
+  currentView.value = 'playlist-detail'
+}
+
 export function goBack() {
   selectedFolder.value = null
   selectedAlbum.value = null
+  selectedPlaylistId.value = null
 
   const view = currentView.peek()
   if (view === 'artist-detail') currentView.value = 'artists'
@@ -171,4 +178,8 @@ export function goBack() {
   else currentView.value = 'artists'
 }
 
-type ViewType = 'artists' | 'songs' | 'artist-detail' | 'albums' | 'album-detail' | 'settings'
+type ViewType =
+  | 'artists' | 'songs' | 'artist-detail'
+  | 'albums' | 'album-detail'
+  | 'playlist-detail'
+  | 'settings'

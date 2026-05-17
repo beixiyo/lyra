@@ -61,10 +61,29 @@
     "title": "播放队列",
     "empty": "队列为空"
   },
+  "audioInfo": {
+    "format": "格式",
+    "bitrate": "码率",
+    "sampleRate": "采样率",
+    "bitDepth": "位深",
+    "lossless": "无损"
+  },
+  "playlist": {
+    "title": "播放列表",
+    "new": "新建播放列表",
+    "rename": "重命名",
+    "delete": "删除播放列表",
+    "deleteConfirm": "确定删除「{{name}}」？",
+    "empty": "播放列表为空",
+    "trackCount_one": "{{count}} 首",
+    "trackCount_other": "{{count}} 首",
+    "defaultName": "新播放列表"
+  },
   "contextMenu": {
     "play": "播放",
     "playNext": "下一首播放",
     "addToQueue": "添加到队列",
+    "addToPlaylist": "添加到播放列表",
     "like": "喜欢",
     "unlike": "取消喜欢"
   },
