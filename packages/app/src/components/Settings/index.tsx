@@ -1,13 +1,18 @@
 import { cn } from 'utils'
 import { memo } from 'react'
-import { motion } from 'motion/react'
+import { motion, Reorder, useMotionValue } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
 import { useLatestCallback } from 'hooks'
-import { FolderPlus, X, RotateCcw } from 'lucide-react'
+import { FolderPlus, X, RotateCcw, Eye, EyeOff, GripVertical } from 'lucide-react'
 import { Select, Switch, Tooltip } from 'comps'
 import { musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
+import {
+  titlebarPosition, titlebarButtons,
+  toggleButtonVisible, reorderButtons,
+} from '@/stores/titlebar'
+import type { TitlebarButtonId } from '@/stores/titlebar'
 import { supportedLanguages } from '@/locales'
 import { THEMES, THEME_IDS, currentTheme, dynamicAccent, applyTheme } from '@/stores/theme'
 import {
@@ -36,6 +41,18 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
 
   const handleDynamicAccent = useLatestCallback((checked: boolean) => {
     dynamicAccent.value = checked
+  })
+
+  const handleTitlebarPosition = useLatestCallback((pos: 'left' | 'right') => {
+    titlebarPosition.value = pos
+  })
+
+  const handleToggleButton = useLatestCallback((id: TitlebarButtonId) => {
+    toggleButtonVisible(id)
+  })
+
+  const handleReorder = useLatestCallback((newOrder: TitlebarButtonId[]) => {
+    reorderButtons(newOrder)
   })
 
   const handleStartListening = useLatestCallback((action: ActionId) => {
@@ -124,6 +141,48 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
                 {t('settings.dynamicAccent')}
               </span>
             </label>
+          </div>
+        </SettingSection>
+
+        {/* Titlebar */}
+        <SettingSection label={t('settings.titlebar')}>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] text-secondary">{t('settings.titlebarPosition')}</span>
+              <div className="flex gap-2">
+                {(['left', 'right'] as const).map(pos => (
+                  <button
+                    key={pos}
+                    onClick={() => handleTitlebarPosition(pos)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-[13px] transition-colors border',
+                      titlebarPosition.value === pos
+                        ? 'border-accent text-accent bg-accent/[0.08]'
+                        : 'border-line/[0.06] text-secondary hover:text-primary hover:bg-overlay/[0.04]',
+                    )}
+                  >
+                    {t(`settings.titlebarPosition${pos === 'left' ? 'Left' : 'Right'}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <Reorder.Group
+              axis="y"
+              values={titlebarButtons.value.map(b => b.id)}
+              onReorder={handleReorder}
+              className="flex flex-col gap-1"
+            >
+              {titlebarButtons.value.map(btn => (
+                <TitlebarButtonRow
+                  key={btn.id}
+                  id={btn.id}
+                  visible={btn.visible}
+                  label={t(`settings.titlebarBtn_${btn.id}`)}
+                  onToggle={() => handleToggleButton(btn.id)}
+                />
+              ))}
+            </Reorder.Group>
           </div>
         </SettingSection>
 
@@ -300,6 +359,42 @@ const KeybindingRow = memo<KeybindingRowProps>(({
 
 KeybindingRow.displayName = 'KeybindingRow'
 
+// ─── Titlebar button row (draggable) ─────────────────────────────────────────
+
+const TitlebarButtonRow = memo<TitlebarButtonRowProps>(({ id, visible, label, onToggle }) => {
+  const y = useMotionValue(0)
+
+  return (
+    <Reorder.Item
+      value={id}
+      style={{ y }}
+      whileDrag={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-overlay/[0.04] cursor-grab active:cursor-grabbing"
+    >
+      <GripVertical className="w-3.5 h-3.5 text-muted shrink-0" />
+
+      <span className={cn(
+        'text-[13px] flex-1',
+        visible ? 'text-primary' : 'text-muted line-through',
+      )}>
+        {label}
+      </span>
+
+      <button
+        onClick={onToggle}
+        className="p-1 text-muted hover:text-primary transition-colors"
+      >
+        {visible
+          ? <Eye className="w-3.5 h-3.5" />
+          : <EyeOff className="w-3.5 h-3.5" />
+        }
+      </button>
+    </Reorder.Item>
+  )
+})
+
+TitlebarButtonRow.displayName = 'TitlebarButtonRow'
+
 // ─── Theme accent dot ─────────────────────────────────────────────────────────
 
 const ThemeDot = memo<{ themeId: ThemeId }>(({ themeId }) => (
@@ -351,4 +446,11 @@ type KeybindingRowProps = {
   onReset: () => void
   onRemove: () => void
   onToggleGlobal: () => void
+}
+
+type TitlebarButtonRowProps = {
+  id: TitlebarButtonId
+  visible: boolean
+  label: string
+  onToggle: () => void
 }

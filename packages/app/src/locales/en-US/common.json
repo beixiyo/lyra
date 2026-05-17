@@ -44,6 +44,13 @@
     "keybindings": "Keyboard Shortcuts",
     "globalShortcuts": "Enable global shortcuts",
     "globalShortcutsDesc": "Ctrl+Shift+Alt+Arrow keys control playback, Ctrl+Shift+Alt+P play/pause",
+    "titlebar": "Window Controls",
+    "titlebarPosition": "Position",
+    "titlebarPositionLeft": "Left",
+    "titlebarPositionRight": "Right",
+    "titlebarBtn_minimize": "Minimize",
+    "titlebarBtn_maximize": "Maximize",
+    "titlebarBtn_close": "Close",
     "version": "Version"
   },
   "lyrics": {

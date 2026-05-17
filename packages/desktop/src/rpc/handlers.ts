@@ -1,4 +1,5 @@
 import { GlobalShortcut } from 'electrobun/bun'
+import { mainWindow } from './window'
 
 // Workaround: bun→webview RPC (send/request) 在 Linux webkit2gtk + dev 模式下不通，
 // 所以改为 webview 轮询 bun 端的 action 队列。
@@ -74,6 +75,25 @@ export const bunRequests = {
     const actions = [...pendingGlobalActions]
     pendingGlobalActions.length = 0
     return actions
+  },
+
+  windowMinimize: () => {
+    mainWindow?.minimize()
+    return true
+  },
+
+  windowMaximize: () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow.unmaximize()
+    } else {
+      mainWindow?.maximize()
+    }
+    return true
+  },
+
+  windowClose: () => {
+    mainWindow?.close()
+    return true
   },
 }
 

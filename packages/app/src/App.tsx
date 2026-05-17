@@ -12,6 +12,7 @@ import {
 import { getLastPlayed, restoreTrack } from '@/stores/player'
 import { initKeybindings, initGlobalShortcuts } from '@/stores/keybindings'
 import { Sidebar } from '@/components/Sidebar'
+import { Header } from '@/components/Header'
 import { Player } from '@/components/Player'
 import { PlayerDetail } from '@/components/PlayerDetail'
 import { ArtistsGrid } from '@/components/ArtistsGrid'
@@ -52,11 +53,11 @@ export const App = memo(() => {
         transition={{ duration: 0.35, delay: 0.1 }}
         className="flex-1 flex flex-col min-w-0"
       >
-        {tracks.value.length > 0 && (
-          <div className="px-8 pt-5 shrink-0 flex justify-end">
+        <Header>
+          {tracks.value.length > 0 && (
             <SearchBar className="w-64" />
-          </div>
-        )}
+          )}
+        </Header>
 
         <div className="flex-1 min-h-0 overflow-y-auto px-8 py-5 custom-scrollbar">
           <MainContent />

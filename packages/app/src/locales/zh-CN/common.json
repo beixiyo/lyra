@@ -44,6 +44,13 @@
     "keybindings": "键盘快捷键",
     "globalShortcuts": "启用全局快捷键",
     "globalShortcutsDesc": "Ctrl+Shift+Alt+方向键控制播放，Ctrl+Shift+Alt+P 播放/暂停",
+    "titlebar": "窗口控制",
+    "titlebarPosition": "位置",
+    "titlebarPositionLeft": "左侧",
+    "titlebarPositionRight": "右侧",
+    "titlebarBtn_minimize": "最小化",
+    "titlebarBtn_maximize": "最大化",
+    "titlebarBtn_close": "关闭",
     "version": "版本"
   },
   "lyrics": {

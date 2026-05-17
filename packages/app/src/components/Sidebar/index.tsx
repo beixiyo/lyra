@@ -42,7 +42,7 @@ export const Sidebar = memo<SidebarProps>(({ style, className }) => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
-        className="flex items-center gap-2.5 px-5 pt-7 pb-5"
+        className="flex items-center gap-2.5 px-5 pt-7 pb-5 electrobun-webkit-app-region-drag"
       >
         <Disc3 className="w-5 h-5 text-accent" />
         <span className="text-[15px] font-semibold tracking-wide text-primary">Lyra</span>

@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@source "../../comps/src";
+
 /* ─── Semantic Design Tokens ─────────────────────────────────────────────────
    These CSS custom properties are defined in @theme so Tailwind generates
    semantic utility classes: bg-bg, bg-surface, text-primary, text-accent, etc.
