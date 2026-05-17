@@ -8,7 +8,7 @@ import {
   Play, Pause, SkipBack, SkipForward,
   Volume2, VolumeX,
   Shuffle, Repeat, Repeat1,
-  ListMusic, Heart,
+  ListMusic, Heart, Mic2,
 } from 'lucide-react'
 import {
   currentTrack, isPlaying, currentTime, duration, volume, progress,
@@ -16,7 +16,7 @@ import {
   togglePlay, nextTrack, prevTrack, seekTo, setVolume,
   toggleShuffle, cycleRepeat,
 } from '@/stores/player'
-import { openPlayerDetail } from '@/stores/lyrics'
+import { openPlayerDetail, desktopLyricsEnabled, toggleDesktopLyrics } from '@/stores/lyrics'
 import { isFavorite, toggleFavorite } from '@/stores/favorites'
 import { toggleQueue } from '../Queue'
 import { CoverArt } from '../CoverArt'
@@ -278,6 +278,17 @@ const RightControls = memo(() => {
         title="Like"
       >
         <Heart className="w-[14px] h-[14px]" fill={liked ? 'currentColor' : 'none'} />
+      </button>
+
+      <button
+        onClick={toggleDesktopLyrics}
+        className={cn(
+          'transition-colors',
+          desktopLyricsEnabled.value ? 'text-accent' : 'text-muted hover:text-secondary',
+        )}
+        title="Desktop Lyrics"
+      >
+        <Mic2 className="w-[14px] h-[14px]" />
       </button>
 
       <VolumeControl />

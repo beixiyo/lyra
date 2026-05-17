@@ -4,7 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    "./rpc": "./src/rpc/index.ts"
+    "./rpc": "./src/rpc/index.ts",
+    "./rpc/lyrics-handlers": "./src/rpc/lyrics-handlers.ts"
   },
   "scripts": {
     "dev": "bun ../../scripts/ensure-display.ts electrobun dev",

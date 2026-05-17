@@ -18,6 +18,7 @@ export default {
     },
     copy: {
       '../app/dist/index.html': 'views/mainview/index.html',
+      '../app/dist/lyrics.html': 'views/mainview/lyrics.html',
       '../app/dist/assets': 'views/mainview/assets',
     },
     watchIgnore: ['../app/dist/**'],

@@ -1,6 +1,7 @@
 import { GlobalShortcut } from 'electrobun/bun'
-import { mainWindow } from './window'
 import { pendingTrayActions } from './tray'
+import { windowManager, WindowType } from '../window-manager'
+import { updateLyricsState } from './lyrics-state'
 
 // Workaround: bun→webview RPC (send/request) 在 Linux webkit2gtk + dev 模式下不通，
 // 所以改为 webview 轮询 bun 端的 action 队列。
@@ -84,26 +85,27 @@ export const bunRequests = {
   },
 
   windowMinimize: () => {
-    mainWindow?.minimize()
+    windowManager.get(WindowType.MAIN)?.minimize()
     return true
   },
 
   windowMaximize: () => {
-    if (mainWindow?.isMaximized()) {
-      mainWindow.unmaximize()
+    const win = windowManager.get(WindowType.MAIN)
+    if (win?.isMaximized()) {
+      win.unmaximize()
     } else {
-      mainWindow?.maximize()
+      win?.maximize()
     }
     return true
   },
 
   windowClose: () => {
-    mainWindow?.hide()
+    windowManager.hide(WindowType.MAIN)
     return true
   },
 
   appQuit: () => {
-    mainWindow?.close()
+    windowManager.destroyAll()
     return true
   },
 
@@ -111,6 +113,36 @@ export const bunRequests = {
     const actions = [...pendingTrayActions]
     pendingTrayActions.length = 0
     return actions
+  },
+
+  pushLyricsState: (state: {
+    trackId: string
+    title: string
+    artist: string
+    lyrics: string | null
+    currentTime: number
+    duration: number
+    isPlaying: boolean
+  }) => {
+    updateLyricsState(state)
+    return true
+  },
+
+  toggleDesktopLyrics: async ({ visible }: { visible: boolean }) => {
+    if (visible) {
+      if (!windowManager.exists(WindowType.LYRICS)) {
+        const { createLyricsWindow } = await import('../window-manager/create-lyrics')
+        await createLyricsWindow()
+      }
+      windowManager.show(WindowType.LYRICS)
+    } else {
+      windowManager.hide(WindowType.LYRICS)
+    }
+    return true
+  },
+
+  isDesktopLyricsVisible: () => {
+    return windowManager.exists(WindowType.LYRICS)
   },
 }
 
