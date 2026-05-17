@@ -15,6 +15,8 @@ import { Sidebar } from '@/components/Sidebar'
 import { Header } from '@/components/Header'
 import { Player } from '@/components/Player'
 import { PlayerDetail } from '@/components/PlayerDetail'
+import { Queue } from '@/components/Queue'
+import { TrackContextMenu } from '@/components/TrackContextMenu'
 import { ArtistsGrid } from '@/components/ArtistsGrid'
 import { AlbumsGrid } from '@/components/AlbumsGrid'
 import { TrackList } from '@/components/TrackList'
@@ -67,6 +69,8 @@ export const App = memo(() => {
       </motion.div>
 
       <PlayerDetail />
+      <Queue />
+      <TrackContextMenu />
     </main>
   )
 })

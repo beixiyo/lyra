@@ -259,6 +259,55 @@ export function getLastPlayed(): { filePath: string; time: number } | null {
   }
 }
 
+export function playNext(track: Track) {
+  const list = playlist.value
+  if (list.length === 0) {
+    playTrack(track, [track], 0)
+    return
+  }
+
+  const insertIdx = playIndex.value + 1
+  const newList = [...list]
+  newList.splice(insertIdx, 0, track)
+  playlist.value = newList
+  resetShuffle()
+}
+
+export function addToQueue(track: Track) {
+  const list = playlist.value
+  if (list.length === 0) {
+    playTrack(track, [track], 0)
+    return
+  }
+
+  playlist.value = [...list, track]
+  resetShuffle()
+}
+
+export function removeFromQueue(index: number) {
+  const list = playlist.value
+  if (index < 0 || index >= list.length) return
+
+  const newList = list.filter((_, i) => i !== index)
+  playlist.value = newList
+
+  if (index < playIndex.value) {
+    playIndex.value = playIndex.value - 1
+  } else if (index === playIndex.value) {
+    if (newList.length === 0) {
+      currentTrack.value = null
+      audio.pause()
+      audio.src = ''
+    } else {
+      const nextIdx = Math.min(index, newList.length - 1)
+      playIndex.value = nextIdx
+      loadAndPlay(newList[nextIdx])
+    }
+  }
+
+  resetShuffle()
+}
+
 export function getAudioStreamUrl(filePath: string) {
   return `${AUDIO_SERVER}/stream?path=${encodeURIComponent(filePath)}`
 }

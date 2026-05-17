@@ -1,6 +1,6 @@
 import { cn } from 'utils'
 import { formatDuration } from 'utils'
-import { memo, useRef } from 'react'
+import { memo, useRef, useState, useEffect } from 'react'
 import { motion } from 'motion/react'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
@@ -8,6 +8,7 @@ import {
   Play, Pause, SkipBack, SkipForward,
   Volume2, VolumeX,
   Shuffle, Repeat, Repeat1,
+  ListMusic, Heart,
 } from 'lucide-react'
 import {
   currentTrack, isPlaying, currentTime, duration, volume, progress,
@@ -16,6 +17,8 @@ import {
   toggleShuffle, cycleRepeat,
 } from '@/stores/player'
 import { openPlayerDetail } from '@/stores/lyrics'
+import { isFavorite, toggleFavorite } from '@/stores/favorites'
+import { toggleQueue } from '../Queue'
 import { CoverArt } from '../CoverArt'
 
 // ─── Root bar ─────────────────────────────────────────────────────────────────
@@ -168,39 +171,76 @@ const ModeButton = memo<ModeButtonProps>(({ active, onClick, title, children }) 
 
 ModeButton.displayName = 'ModeButton'
 
-// ─── Progress bar ─────────────────────────────────────────────────────────────
+// ─── Progress bar (with drag) ─────────────────────────────────────────────────
 
 const ProgressBar = memo(() => {
   useSignals()
 
   const barRef = useRef<HTMLDivElement>(null)
+  const [dragging, setDragging] = useState(false)
+  const [dragRatio, setDragRatio] = useState(0)
 
-  const handleSeek = useLatestCallback((e: React.MouseEvent) => {
+  const getRatio = useLatestCallback((clientX: number) => {
     const el = barRef.current
-    if (!el || !duration.value) return
+    if (!el) return 0
     const rect = el.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
-    seekTo(ratio * duration.value)
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
   })
+
+  const handleMouseDown = useLatestCallback((e: React.MouseEvent) => {
+    if (!duration.value) return
+    const ratio = getRatio(e.clientX)
+    setDragging(true)
+    setDragRatio(ratio)
+  })
+
+  useEffect(() => {
+    if (!dragging) return
+
+    const handleMove = (e: MouseEvent) => {
+      setDragRatio(getRatio(e.clientX))
+    }
+
+    const handleUp = (e: MouseEvent) => {
+      const ratio = getRatio(e.clientX)
+      seekTo(ratio * duration.value)
+      setDragging(false)
+    }
+
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleUp)
+    }
+  }, [dragging])
+
+  const displayRatio = dragging ? dragRatio : progress.value
+  const displayTime = dragging ? dragRatio * duration.value : currentTime.value
 
   return (
     <div className="flex items-center gap-2.5 w-full">
       <span className="text-[11px] tabular-nums text-secondary w-10 text-right select-none">
-        {formatDuration(currentTime.value)}
+        {formatDuration(displayTime)}
       </span>
 
       <div
         ref={barRef}
-        onClick={handleSeek}
+        onMouseDown={handleMouseDown}
         className="flex-1 h-1 bg-overlay/[0.08] rounded-full cursor-pointer group relative"
       >
         <div
-          className="h-full bg-overlay/50 group-hover:bg-accent rounded-full transition-colors relative"
-          style={{ width: `${progress.value * 100}%` }}
+          className={cn(
+            'h-full rounded-full relative',
+            dragging ? 'bg-accent' : 'bg-overlay/50 group-hover:bg-accent',
+            !dragging && 'transition-colors',
+          )}
+          style={{ width: `${displayRatio * 100}%` }}
         >
           <div className={cn(
-            'absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary',
-            'opacity-0 group-hover:opacity-100 transition-opacity shadow-sm',
+            'absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-primary shadow-sm',
+            dragging ? 'opacity-100 scale-110' : 'opacity-0 group-hover:opacity-100',
+            'transition-opacity',
           )} />
         </div>
       </div>
@@ -214,34 +254,96 @@ const ProgressBar = memo(() => {
 
 ProgressBar.displayName = 'ProgressBar'
 
-// ─── Right controls (volume + lyrics) ────────────────────────────────────────
+// ─── Right controls (like + volume + queue) ──────────────────────────────────
 
-const RightControls = memo(() => (
-  <div className="flex items-center gap-3 shrink-0">
-    <VolumeControl />
-  </div>
-))
+const RightControls = memo(() => {
+  useSignals()
+
+  const track = currentTrack.value
+  const liked = track ? isFavorite(track.title) : false
+
+  const handleToggleFavorite = useLatestCallback(() => {
+    if (!track) return
+    toggleFavorite(track.title)
+  })
+
+  return (
+    <div className="flex items-center gap-3 shrink-0">
+      <button
+        onClick={handleToggleFavorite}
+        className={cn(
+          'transition-colors',
+          liked ? 'text-accent' : 'text-muted hover:text-secondary',
+        )}
+        title="Like"
+      >
+        <Heart className="w-[14px] h-[14px]" fill={liked ? 'currentColor' : 'none'} />
+      </button>
+
+      <VolumeControl />
+
+      <button
+        onClick={toggleQueue}
+        className="text-muted hover:text-secondary transition-colors"
+        title="Queue"
+      >
+        <ListMusic className="w-[14px] h-[14px]" />
+      </button>
+    </div>
+  )
+})
 
 RightControls.displayName = 'RightControls'
 
-// ─── Volume control ───────────────────────────────────────────────────────────
+// ─── Volume control (with drag) ───────────────────────────────────────────────
 
 export const VolumeControl = memo(() => {
   useSignals()
 
   const barRef = useRef<HTMLDivElement>(null)
+  const [dragging, setDragging] = useState(false)
+  const [dragValue, setDragValue] = useState(0)
 
-  const handleVolumeClick = useLatestCallback((e: React.MouseEvent) => {
+  const getRatio = useLatestCallback((clientX: number) => {
     const el = barRef.current
-    if (!el) return
+    if (!el) return 0
     const rect = el.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
+    return Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+  })
+
+  const handleMouseDown = useLatestCallback((e: React.MouseEvent) => {
+    const ratio = getRatio(e.clientX)
+    setDragging(true)
+    setDragValue(ratio)
     setVolume(ratio)
   })
+
+  useEffect(() => {
+    if (!dragging) return
+
+    const handleMove = (e: MouseEvent) => {
+      const ratio = getRatio(e.clientX)
+      setDragValue(ratio)
+      setVolume(ratio)
+    }
+
+    const handleUp = () => {
+      setDragging(false)
+    }
+
+    document.addEventListener('mousemove', handleMove)
+    document.addEventListener('mouseup', handleUp)
+    return () => {
+      document.removeEventListener('mousemove', handleMove)
+      document.removeEventListener('mouseup', handleUp)
+    }
+  }, [dragging])
 
   const handleToggleMute = useLatestCallback(() => {
     setVolume(volume.value > 0 ? 0 : 0.8)
   })
+
+  const displayValue = dragging ? dragValue : volume.value
 
   return (
     <div className="flex items-center gap-2 w-28">
@@ -249,7 +351,7 @@ export const VolumeControl = memo(() => {
         onClick={handleToggleMute}
         className="text-secondary hover:text-primary transition-colors"
       >
-        {volume.value > 0
+        {displayValue > 0
           ? <Volume2 className="w-[14px] h-[14px]" />
           : <VolumeX className="w-[14px] h-[14px]" />
         }
@@ -257,13 +359,23 @@ export const VolumeControl = memo(() => {
 
       <div
         ref={barRef}
-        onClick={handleVolumeClick}
-        className="flex-1 h-1 bg-overlay/[0.08] rounded-full cursor-pointer"
+        onMouseDown={handleMouseDown}
+        className="flex-1 h-1 bg-overlay/[0.08] rounded-full cursor-pointer group relative"
       >
         <div
-          className="h-full bg-overlay/50 rounded-full"
-          style={{ width: `${volume.value * 100}%` }}
-        />
+          className={cn(
+            'h-full rounded-full relative',
+            dragging ? 'bg-accent' : 'bg-overlay/50 group-hover:bg-accent',
+            !dragging && 'transition-colors',
+          )}
+          style={{ width: `${displayValue * 100}%` }}
+        >
+          <div className={cn(
+            'absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-primary shadow-sm',
+            dragging ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+            'transition-opacity',
+          )} />
+        </div>
       </div>
     </div>
   )

@@ -5,7 +5,10 @@ import { motion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { useSignals } from '@preact/signals-react/runtime'
 import { useLatestCallback } from 'hooks'
+import { Heart } from 'lucide-react'
 import { playTrack, currentTrack, isPlaying } from '@/stores/player'
+import { isFavorite } from '@/stores/favorites'
+import { openTrackContextMenu } from '../TrackContextMenu'
 import { CoverArt } from '../CoverArt'
 import type { Track } from '@/types/music'
 
@@ -81,6 +84,7 @@ export const TrackList = memo<TrackListProps>(({
             isActive={currentTrack.value?.filePath === track.filePath}
             isCurrentPlaying={isPlaying.value && currentTrack.value?.filePath === track.filePath}
             onPlay={handlePlay}
+            tracks={tracks}
           />
         ))}
       </motion.div>
@@ -96,8 +100,16 @@ const TrackItem = memo<TrackItemProps>(({
   isActive,
   isCurrentPlaying,
   onPlay,
+  tracks,
 }) => {
+  useSignals()
   const handleClick = useLatestCallback(() => onPlay(track, index))
+  const liked = isFavorite(track.title)
+
+  const handleContextMenu = useLatestCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    openTrackContextMenu(e, track, tracks, index)
+  })
 
   return (
     <motion.button
@@ -107,8 +119,9 @@ const TrackItem = memo<TrackItemProps>(({
       }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
       className={cn(
-        'flex items-center gap-4 px-4 py-2.5 text-sm transition-colors text-left',
+        'flex items-center gap-4 px-4 py-2.5 text-sm transition-colors text-left group/track',
         'hover:bg-overlay/[0.04]',
         isActive && 'bg-overlay/[0.04]',
       )}
@@ -140,6 +153,10 @@ const TrackItem = memo<TrackItemProps>(({
         {track.album}
       </span>
 
+      {liked && (
+        <Heart className="w-3 h-3 text-accent shrink-0" fill="currentColor" />
+      )}
+
       <span className="w-16 text-right tabular-nums text-[13px] text-muted">
         {track.duration ? formatDuration(track.duration) : '--:--'}
       </span>
@@ -162,4 +179,5 @@ type TrackItemProps = {
   isActive: boolean
   isCurrentPlaying: boolean
   onPlay: (track: Track, index: number) => void
+  tracks: Track[]
 }

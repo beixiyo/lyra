@@ -57,6 +57,17 @@
     "title": "Lyrics",
     "noLyrics": "No lyrics available"
   },
+  "queue": {
+    "title": "Queue",
+    "empty": "Queue is empty"
+  },
+  "contextMenu": {
+    "play": "Play",
+    "playNext": "Play Next",
+    "addToQueue": "Add to Queue",
+    "like": "Like",
+    "unlike": "Unlike"
+  },
   "keybindings": {
     "togglePlay": "Play / Pause",
     "nextTrack": "Next track",
