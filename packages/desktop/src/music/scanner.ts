@@ -54,28 +54,45 @@ export async function parseMusicMetadata(filePath: string, scanRoot: string) {
   }
 }
 
-export async function scanAndParse(dir: string) {
+export const scanProgress = { parsed: 0, total: 0, scanning: false }
+
+export async function scanAndParse(dir: string, cachedPaths?: Set<string>) {
   const files = await scanMusicFiles(dir)
-  const total = files.length
+  const newFiles = cachedPaths
+    ? files.filter(f => !cachedPaths.has(f))
+    : files
+
+  scanProgress.total = newFiles.length
+  scanProgress.parsed = 0
+  scanProgress.scanning = true
+
   const results: Awaited<ReturnType<typeof parseMusicMetadata>>[] = []
   const errors: { file: string; error: string }[] = []
 
   const CONCURRENCY = Math.min(8, Math.max(2, navigator?.hardwareConcurrency ?? 4))
 
-  const queue = files.map(file => async () => {
+  const queue = newFiles.map(file => async () => {
     try {
       const meta = await parseMusicMetadata(file, dir)
       results.push(meta)
     } catch (e) {
       errors.push({ file, error: String(e) })
     }
+    scanProgress.parsed++
   })
 
   for (let i = 0; i < queue.length; i += CONCURRENCY) {
     await Promise.all(queue.slice(i, i + CONCURRENCY).map(fn => fn()))
   }
 
-  return { results, errors, total }
+  scanProgress.scanning = false
+
+  const fileSet = new Set(files)
+  const removedPaths = cachedPaths
+    ? [...cachedPaths].filter(p => !fileSet.has(p))
+    : []
+
+  return { results, errors, total: files.length, removedPaths }
 }
 
 function extractFolder(filePath: string, scanRoot: string): string {

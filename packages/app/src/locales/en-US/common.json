@@ -51,6 +51,9 @@
     "titlebarBtn_minimize": "Minimize",
     "titlebarBtn_maximize": "Maximize",
     "titlebarBtn_close": "Close",
+    "clearCache": "Clear Song Cache",
+    "clearCacheDesc": "All song metadata will be re-scanned",
+    "cacheCleared": "Cache cleared",
     "version": "Version"
   },
   "lyrics": {

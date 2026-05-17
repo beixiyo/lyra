@@ -1,10 +1,13 @@
 import { signal, computed } from '@preact/signals-react'
-import { persistedSignal } from './persist'
+import { persistedSignal, store } from './persist'
 import { rpc } from '@/ipc'
 import type { Track, ScanResult } from '@/types/music'
 
+const CACHE_KEY = 'lyra:trackCache'
+
 export const tracks = signal<Track[]>([])
 export const isScanning = signal(false)
+export const scanProgress = signal({ parsed: 0, total: 0 })
 export const scanError = signal<string | null>(null)
 export const currentView = persistedSignal<ViewType>('lyra:view', 'artists')
 export const selectedFolder = signal<string | null>(null)
@@ -100,34 +103,80 @@ export async function detectMusicDirs() {
   }
 }
 
+export async function loadCachedTracks(): Promise<boolean> {
+  try {
+    const cached = await store.getItem<Track[]>(CACHE_KEY)
+    if (cached && cached.length > 0) {
+      tracks.value = cached
+      return true
+    }
+  } catch { /* no cache */ }
+  return false
+}
+
+let progressTimer: ReturnType<typeof setInterval> | null = null
+
+function startProgressPolling() {
+  if (progressTimer) return
+  progressTimer = setInterval(async () => {
+    try {
+      const p = await rpc.request.getScanProgress({}) as { parsed: number; total: number; scanning: boolean }
+      scanProgress.value = { parsed: p.parsed, total: p.total }
+      if (!p.scanning && progressTimer) {
+        clearInterval(progressTimer)
+        progressTimer = null
+      }
+    } catch { /* ignore */ }
+  }, 200)
+}
+
 export async function scanLibrary(dirs: string[]) {
   if (dirs.length === 0) return
 
   isScanning.value = true
+  scanProgress.value = { parsed: 0, total: 0 }
   scanError.value = null
+
+  const cachedPaths = tracks.value.map(t => t.filePath)
+
+  startProgressPolling()
 
   try {
     const results = await Promise.all(
-      dirs.map(dir => rpc.request.scanMusicDir({ dir }) as Promise<ScanResult>),
+      dirs.map(dir => rpc.request.scanMusicDir({
+        dir,
+        cachedPaths: cachedPaths.length > 0 ? cachedPaths : undefined,
+      }) as Promise<ScanResult>),
     )
 
-    const allTracks: Track[] = []
-    let total = 0
-    let errors = 0
+    let allTracks = [...tracks.value]
 
     for (const r of results) {
+      if (r.removedPaths?.length > 0) {
+        const removed = new Set(r.removedPaths)
+        allTracks = allTracks.filter(t => !removed.has(t.filePath))
+      }
       allTracks.push(...r.results)
-      total += r.total
-      errors += r.errors.length
     }
 
+    const seen = new Set<string>()
+    allTracks = allTracks.filter(t => {
+      if (seen.has(t.filePath)) return false
+      seen.add(t.filePath)
+      return true
+    })
+
     tracks.value = allTracks
-    console.log(`Scanned ${total} files, ${allTracks.length} parsed, ${errors} errors`)
+    await store.setItem(CACHE_KEY, allTracks)
+
+    const newCount = results.reduce((s, r) => s + r.results.length, 0)
+    console.log(`Library: ${allTracks.length} tracks (${newCount} new)`)
   } catch (e) {
     scanError.value = String(e)
     console.error('Scan failed:', e)
   } finally {
     isScanning.value = false
+    if (progressTimer) { clearInterval(progressTimer); progressTimer = null }
   }
 }
 
@@ -147,9 +196,15 @@ export async function pickAndAddDirs() {
   }
 }
 
+export async function clearTrackCache() {
+  await store.removeItem(CACHE_KEY)
+  tracks.value = []
+}
+
 export async function removeMusicDir(dir: string) {
   musicDirs.value = musicDirs.value.filter(d => d !== dir)
   tracks.value = tracks.value.filter(t => !t.filePath.startsWith(dir))
+  await store.setItem(CACHE_KEY, tracks.value)
 }
 
 export function selectFolder(folder: string) {

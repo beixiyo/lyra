@@ -7,8 +7,8 @@ import { Loader2, FolderOpen } from 'lucide-react'
 import {
   currentView, selectedFolder, selectedAlbum, selectedPlaylistId,
   displayTracks, albumTracks,
-  tracks, filteredTracks, isScanning, scanError, searchQuery,
-  scanLibrary, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
+  tracks, filteredTracks, isScanning, scanError, searchQuery, scanProgress,
+  scanLibrary, loadCachedTracks, goBack, musicDirs, detectMusicDirs, pickAndAddDirs,
 } from '@/stores/library'
 import { getPlaylist, renamePlaylist } from '@/stores/playlist'
 import type { Track } from '@/types/music'
@@ -36,15 +36,25 @@ export const App = memo(() => {
     if (musicDirs.value.length === 0) await detectMusicDirs()
     if (musicDirs.value.length === 0) return
 
+    const hadCache = await loadCachedTracks()
+
+    if (hadCache) {
+      const last = await getLastPlayed()
+      if (last) {
+        const allTracks = tracks.value
+        const idx = allTracks.findIndex(t => t.filePath === last.filePath)
+        if (idx !== -1) restoreTrack(allTracks[idx], allTracks, idx, last.time)
+      }
+    }
+
     await scanLibrary(musicDirs.value)
 
-    const last = await getLastPlayed()
-    if (!last) return
-
-    const allTracks = tracks.value
-    const idx = allTracks.findIndex(t => t.filePath === last.filePath)
-    if (idx !== -1) {
-      restoreTrack(allTracks[idx], allTracks, idx, last.time)
+    if (!hadCache) {
+      const last = await getLastPlayed()
+      if (!last) return
+      const allTracks = tracks.value
+      const idx = allTracks.findIndex(t => t.filePath === last.filePath)
+      if (idx !== -1) restoreTrack(allTracks[idx], allTracks, idx, last.time)
     }
   })
 
@@ -99,7 +109,10 @@ const MainContent = memo(() => {
     )
   }
 
-  if (isScanning.value) {
+  if (isScanning.value && tracks.value.length === 0) {
+    const { parsed, total } = scanProgress.value
+    const pct = total > 0 ? Math.round((parsed / total) * 100) : 0
+
     return (
       <motion.div
         initial={{ opacity: 0 }}
@@ -109,6 +122,19 @@ const MainContent = memo(() => {
       >
         <Loader2 className="w-6 h-6 animate-spin" />
         <p className="text-sm">{t('app.scanning')}</p>
+        {total > 0 && (
+          <div className="flex flex-col items-center gap-1.5 w-48">
+            <div className="w-full h-1 rounded-full bg-overlay/[0.08] overflow-hidden">
+              <motion.div
+                className="h-full bg-accent rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+            <p className="text-xs text-muted">{parsed} / {total}</p>
+          </div>
+        )}
       </motion.div>
     )
   }

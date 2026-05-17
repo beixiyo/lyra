@@ -24,4 +24,5 @@ export type ScanResult = {
   results: Track[]
   errors: { file: string; error: string }[]
   total: number
+  removedPaths: string[]
 }

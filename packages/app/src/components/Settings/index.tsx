@@ -5,9 +5,9 @@ import { useSignals } from '@preact/signals-react/runtime'
 import { useSignal } from '@preact/signals-react'
 import { useTranslation } from 'react-i18next'
 import { useLatestCallback } from 'hooks'
-import { FolderPlus, X, RotateCcw, Eye, EyeOff, GripVertical } from 'lucide-react'
+import { FolderPlus, X, RotateCcw, Eye, EyeOff, GripVertical, Trash2 } from 'lucide-react'
 import { Select, Switch, Tooltip } from 'comps'
-import { musicDirs, pickAndAddDirs, removeMusicDir } from '@/stores/library'
+import { musicDirs, pickAndAddDirs, removeMusicDir, clearTrackCache, scanLibrary } from '@/stores/library'
 import {
   titlebarPosition, titlebarButtons,
   toggleButtonVisible, reorderButtons,
@@ -217,6 +217,26 @@ export const Settings = memo<SettingsProps>(({ style, className }) => {
             >
               <FolderPlus className="w-3.5 h-3.5" />
               {t('settings.addDirectory')}
+            </button>
+          </div>
+        </SettingSection>
+
+        {/* Clear cache */}
+        <SettingSection label={t('settings.clearCache')}>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[12px] text-muted">{t('settings.clearCacheDesc')}</p>
+            <button
+              onClick={async () => {
+                await clearTrackCache()
+                await scanLibrary(musicDirs.value)
+              }}
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 rounded-lg text-[13px] w-fit',
+                'text-red-400 hover:bg-red-400/[0.08] transition-colors',
+              )}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              {t('settings.clearCache')}
             </button>
           </div>
         </SettingSection>

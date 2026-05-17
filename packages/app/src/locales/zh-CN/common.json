@@ -51,6 +51,9 @@
     "titlebarBtn_minimize": "最小化",
     "titlebarBtn_maximize": "最大化",
     "titlebarBtn_close": "关闭",
+    "clearCache": "清除歌曲缓存",
+    "clearCacheDesc": "清除后将重新扫描所有歌曲信息",
+    "cacheCleared": "缓存已清除",
     "version": "版本"
   },
   "lyrics": {

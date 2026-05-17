@@ -21,9 +21,14 @@ export const bunRequests = {
     return '0.1.0'
   },
 
-  scanMusicDir: async ({ dir }: { dir: string }) => {
+  scanMusicDir: async ({ dir, cachedPaths }: { dir: string, cachedPaths?: string[] }) => {
     const { scanAndParse } = await import('../music/scanner')
-    return await scanAndParse(dir)
+    return await scanAndParse(dir, cachedPaths ? new Set(cachedPaths) : undefined)
+  },
+
+  getScanProgress: async () => {
+    const { scanProgress } = await import('../music/scanner')
+    return { parsed: scanProgress.parsed, total: scanProgress.total, scanning: scanProgress.scanning }
   },
 
   getDefaultMusicDir: async () => {
